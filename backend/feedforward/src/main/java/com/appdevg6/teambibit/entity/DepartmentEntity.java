@@ -1,4 +1,4 @@
-package com.bibit.appdevg6.entity;
+package com.appdevg6.teambibit.entity;
 
 import jakarta.persistence.*;
 

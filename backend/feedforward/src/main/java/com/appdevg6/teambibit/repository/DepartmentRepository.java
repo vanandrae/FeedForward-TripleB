@@ -1,6 +1,6 @@
-package com.bibit.appdevg6.repository;
+package com.appdevg6.teambibit.repository;
 
-import com.bibit.appdevg6.entity.DepartmentEntity;
+import com.appdevg6.teambibit.entity.DepartmentEntity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

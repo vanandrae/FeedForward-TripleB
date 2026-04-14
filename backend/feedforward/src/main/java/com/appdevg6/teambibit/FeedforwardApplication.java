@@ -1,4 +1,4 @@
-package com.bibit.appdevg6;
+package com.appdevg6.teambibit;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
