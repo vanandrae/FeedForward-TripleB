@@ -6,13 +6,19 @@ const Register = () => {
   return (
     <div className="auth-page-wrapper">
       <div className="auth-container">
-        <div className="auth-header">
-          <h1>Join FeedForward</h1>
-          <p>Create an account to start giving feedback</p>
+        <div className="auth-side-panel">
+          <div className="brand-logo">
+            <span>HT</span>
+          </div>
+          <h1>FeedForward</h1>
+          <p>Welcome! Please fill in the details to create your account.</p>
         </div>
-        <RegisterForm />
-        <div className="auth-footer">
-          <p>Already have an account? <a href="/login">Login</a></p>
+        <div className="auth-card">
+          <div className="auth-card-header">
+            <h2>Sign Up</h2>
+            <p>Create your account to get started.</p>
+          </div>
+          <RegisterForm />
         </div>
       </div>
     </div>

@@ -3,18 +3,18 @@ import React from 'react';
 const RoleToggle = ({ currentRole, onToggle }) => {
   return (
     <div className="role-toggle-container">
-      <p>I am a:</p>
+      <label className="role-label">I am a:</label>
       <div className="toggle-buttons">
         <button 
           type="button"
-          className={currentRole === 'STUDENT' ? 'active' : ''} 
+          className={`toggle-btn ${currentRole === 'STUDENT' ? 'active' : ''}`}
           onClick={() => onToggle('STUDENT')}
         >
           Student
         </button>
         <button 
           type="button"
-          className={currentRole === 'STAFF' ? 'active' : ''} 
+          className={`toggle-btn ${currentRole === 'STAFF' ? 'active' : ''}`}
           onClick={() => onToggle('STAFF')}
         >
           Staff

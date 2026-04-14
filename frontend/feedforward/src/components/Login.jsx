@@ -6,13 +6,19 @@ const Login = () => {
   return (
     <div className="auth-page-wrapper">
       <div className="auth-container">
-        <div className="auth-header">
-          <h1>FeedForward</h1>
-          <p>Login to your account to continue</p>
+        <div className="auth-side-panel">
+          <div className="brand-logo">
+            <span>HT</span>
+          </div>
+          <h1>FeedFoward</h1>
+          <p>Welcome back! Please enter your credentials to access your account.</p>
         </div>
-        <LoginForm />
-        <div className="auth-footer">
-          <p>Don't have an account? <a href="/register">Register</a></p>
+        <div className="auth-card">
+          <div className="auth-card-header">
+            <h2>Login</h2>
+            <p>Enter your credentials to access your account.</p>
+          </div>
+          <LoginForm />
         </div>
       </div>
     </div>

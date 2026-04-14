@@ -1,4 +1,6 @@
 // src/services/Interceptor.js
+import axios from 'axios';
+
 // Get token from localStorage
 const getToken = () => {
   return localStorage.getItem('authToken');
