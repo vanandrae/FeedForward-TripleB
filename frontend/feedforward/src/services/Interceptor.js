@@ -1,4 +1,6 @@
 // src/services/Interceptor.js
+import axios from 'axios';
+
 // Get token from localStorage
 const getToken = () => {
   return localStorage.getItem('authToken');
@@ -31,6 +33,7 @@ const handleResponseError = (error) => {
       .catch(() => {
         // Redirect to login if refresh fails
         localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
         window.location.href = '/login';
         return Promise.reject(error);
       });

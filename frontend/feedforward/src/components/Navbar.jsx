@@ -1,7 +1,28 @@
+// src/components/Navbar.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 const Navbar = () => {
   const [showMenu, setShowMenu] = useState(false);
+  const navigate = useNavigate();
+  const { logout, user, isAuthenticated } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    setShowMenu(false);
+  };
+
+  const handleProfile = () => {
+    navigate('/profile');
+    setShowMenu(false);
+  };
+
+  // Don't render navbar if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <nav className="bg-[#1976D2] shadow-md h-16 fixed top-0 right-0 left-64 z-10">
@@ -28,9 +49,11 @@ const Navbar = () => {
               className="flex items-center gap-2 text-white hover:bg-white/10 px-3 py-2 rounded-lg"
             >
               <div className="w-8 h-8 bg-[#DC004E] rounded-full flex items-center justify-center">
-                <span className="text-white font-medium">JD</span>
+                <span className="text-white font-medium">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </span>
               </div>
-              <span>John Doe</span>
+              <span>{user?.name || 'User'}</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
@@ -38,10 +61,22 @@ const Navbar = () => {
 
             {showMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-20">
-                <button className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</button>
-                <button className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</button>
+                <button
+                  onClick={handleProfile}
+                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
+                  👤 Profile
+                </button>
+                <button className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                  ⚙️ Settings
+                </button>
                 <hr className="my-1" />
-                <button className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">Logout</button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                >
+                  🚪 Logout
+                </button>
               </div>
             )}
           </div>

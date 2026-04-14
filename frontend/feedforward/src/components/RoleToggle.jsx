@@ -1,25 +1,27 @@
 import React from 'react';
+import './AuthStyles.css';
 
-const RoleToggle = ({ currentRole, onToggle }) => {
+const RoleToggle = ({ selectedRole, onRoleChange }) => {
+  const roles = [
+    { value: 'student', label: 'Student', icon: '🎓', description: 'Submit and track feedback' },
+    { value: 'faculty', label: 'Faculty', icon: '👨‍🏫', description: 'Review and manage feedback' },
+    { value: 'admin', label: 'Admin', icon: '👑', description: 'Full system access' }
+  ];
+
   return (
     <div className="role-toggle-container">
-      <p>I am a:</p>
-      <div className="toggle-buttons">
-        <button 
+      {roles.map(role => (
+        <button
+          key={role.value}
           type="button"
-          className={currentRole === 'STUDENT' ? 'active' : ''} 
-          onClick={() => onToggle('STUDENT')}
+          onClick={() => onRoleChange(role.value)}
+          className={`role-toggle-btn ${selectedRole === role.value ? 'role-toggle-btn-active' : ''}`}
         >
-          Student
+          <div className="role-icon">{role.icon}</div>
+          <div className="role-label">{role.label}</div>
+          <div className="role-description">{role.description}</div>
         </button>
-        <button 
-          type="button"
-          className={currentRole === 'STAFF' ? 'active' : ''} 
-          onClick={() => onToggle('STAFF')}
-        >
-          Staff
-        </button>
-      </div>
+      ))}
     </div>
   );
 };

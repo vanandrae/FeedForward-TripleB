@@ -4,16 +4,13 @@ import './AuthStyles.css';
 
 const Login = () => {
   return (
-    <div className="auth-page-wrapper">
-      <div className="auth-container">
+    <div className="auth-container">
+      <div className="auth-card">
         <div className="auth-header">
-          <h1>FeedForward</h1>
-          <p>Login to your account to continue</p>
+          <h1 className="auth-title">FeedForward</h1>
+          <p className="auth-subtitle">Welcome back! Please login to your account</p>
         </div>
         <LoginForm />
-        <div className="auth-footer">
-          <p>Don't have an account? <a href="/register">Register</a></p>
-        </div>
       </div>
     </div>
   );

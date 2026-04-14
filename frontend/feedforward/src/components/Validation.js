@@ -1,18 +1,31 @@
-export const validateRegistration = (data) => {
-  const errors = {};
-
-  if (!data.username || data.username.length < 3) {
-    errors.username = "Username must be at least 3 characters.";
-  }
-
+// Validation utilities
+export const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(data.email)) {
-    errors.email = "Please enter a valid email address.";
-  }
+  return emailRegex.test(email);
+};
 
-  if (!data.password || data.password.length < 8) {
-    errors.password = "Password must be at least 8 characters.";
-  }
+export const validatePassword = (password) => {
+  return password && password.length >= 6;
+};
 
-  return errors;
+export const validateName = (name) => {
+  return name && name.trim().length >= 2;
+};
+
+export const validateConfirmPassword = (password, confirmPassword) => {
+  return password === confirmPassword;
+};
+
+export const validateRequired = (value) => {
+  return value && value.trim().length > 0;
+};
+
+export const validatePhoneNumber = (phone) => {
+  const phoneRegex = /^[0-9]{10,11}$/;
+  return phoneRegex.test(phone);
+};
+
+export const validateRole = (role) => {
+  const validRoles = ['student', 'faculty', 'admin'];
+  return validRoles.includes(role);
 };
