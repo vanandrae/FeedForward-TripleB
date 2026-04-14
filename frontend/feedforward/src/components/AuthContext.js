@@ -1,7 +1,7 @@
 // src/components/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
-// Remove these lines - they're not being used yet
-// import { login as apiLogin, register as apiRegister } from '../services/HttpService';
+import HttpService from '../services/HttpService';
+import { API_ENDPOINTS } from '../services/ApiConstants';
 
 const AuthContext = createContext();
 
@@ -34,25 +34,13 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await apiLogin({ email, password });
+      const response = await HttpService.post(API_ENDPOINTS.LOGIN, { email, password });
       
-      // Mock response for now
-      const mockResponse = {
-        token: 'mock-token-123',
-        user: {
-          id: 1,
-          name: 'John Doe',
-          email: email,
-          role: 'student'
-        }
-      };
-      
-      localStorage.setItem('authToken', mockResponse.token);
-      localStorage.setItem('userData', JSON.stringify(mockResponse.user));
-      setUser(mockResponse.user);
+      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('userData', JSON.stringify(response));
+      setUser(response);
       setIsAuthenticated(true);
-      setUserRole(mockResponse.user.role);
+      setUserRole(response.role);
       return { success: true };
     } catch (error) {
       return { success: false, message: error.message };
@@ -61,25 +49,25 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await apiRegister(userData);
+      const response = await HttpService.post(API_ENDPOINTS.REGISTER, {
+        name: userData.name,
+        email: userData.email,
+        password: userData.password,
+        role: userData.role,
+        department: userData.department
+      });
       
-      // Mock response for now
-      const mockResponse = {
-        token: 'mock-token-123',
-        user: {
-          id: 1,
-          name: userData.name,
-          email: userData.email,
-          role: userData.role || 'student'
-        }
-      };
+      // Auto login after registration
+      const loginResponse = await HttpService.post(API_ENDPOINTS.LOGIN, {
+        email: userData.email,
+        password: userData.password
+      });
       
-      localStorage.setItem('authToken', mockResponse.token);
-      localStorage.setItem('userData', JSON.stringify(mockResponse.user));
-      setUser(mockResponse.user);
+      localStorage.setItem('authToken', loginResponse.token);
+      localStorage.setItem('userData', JSON.stringify(loginResponse));
+      setUser(loginResponse);
       setIsAuthenticated(true);
-      setUserRole(mockResponse.user.role);
+      setUserRole(loginResponse.role);
       return { success: true };
     } catch (error) {
       return { success: false, message: error.message };

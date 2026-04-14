@@ -9,7 +9,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:3000")
 public class AdminController {
 
     private final UserService userService;
@@ -26,6 +26,7 @@ public class AdminController {
     @PutMapping("/users/{id}/role")
     public ResponseEntity<Map<String, Object>> updateUserRole(@PathVariable Long id,
                                                               @RequestBody Map<String, String> payload) {
-        return ResponseEntity.ok(userService.updateUserRole(id, payload.getOrDefault("role", "STUDENT")));
+        String role = payload.getOrDefault("role", "STUDENT");
+        return ResponseEntity.ok(userService.updateUserRole(id, role));
     }
 }

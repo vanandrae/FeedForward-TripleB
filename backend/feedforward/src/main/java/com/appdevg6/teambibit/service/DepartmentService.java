@@ -37,11 +37,10 @@ public class DepartmentService {
 
     // UPDATE a department
     public DepartmentEntity updateDepartment(Long id, DepartmentEntity departmentDetails) {
-        DepartmentEntity department = new DepartmentEntity();
         try {
             // Search for the department by ID
-            department = departmentRepository.findById(id).get();
-            department.setName(departmentDetails.getName());
+            DepartmentEntity department = departmentRepository.findById(id).get();
+            department.setDepartmentName(departmentDetails.getDepartmentName());  // Changed from setName
             department.setDescription(departmentDetails.getDescription());
             return departmentRepository.save(department);
         } catch (NoSuchElementException ex) {

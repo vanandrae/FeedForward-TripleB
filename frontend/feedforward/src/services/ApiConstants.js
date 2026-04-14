@@ -1,19 +1,18 @@
 // src/services/ApiConstants.js
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = 'http://localhost:8080/api';
 
 export const API_ENDPOINTS = {
   // Auth
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
-  LOGOUT: '/auth/logout',
   
   // Feedback
   GET_ALL_FEEDBACK: '/feedback',
-  GET_FEEDBACK_BY_ID: '/feedback/:id',
+  GET_FEEDBACK_BY_ID: '/feedback',
   CREATE_FEEDBACK: '/feedback',
-  UPDATE_FEEDBACK: '/feedback/:id',
-  DELETE_FEEDBACK: '/feedback/:id',
-  UPDATE_FEEDBACK_STATUS: '/feedback/:id/status',
+  UPDATE_FEEDBACK: '/feedback',
+  DELETE_FEEDBACK: '/feedback',
+  UPDATE_FEEDBACK_STATUS: '/feedback/status',
   
   // User
   GET_USER_PROFILE: '/user/profile',
@@ -26,7 +25,7 @@ export const API_ENDPOINTS = {
   
   // Admin
   GET_ALL_USERS: '/admin/users',
-  UPDATE_USER_ROLE: '/admin/users/:id/role',
+  UPDATE_USER_ROLE: '/admin/users/role',
 };
 
 export default API_BASE_URL;
