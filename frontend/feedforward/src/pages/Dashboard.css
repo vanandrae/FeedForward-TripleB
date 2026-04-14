@@ -1,0 +1,149 @@
+/* src/Dashboard.css */
+.dashboard-container {
+  position: relative;
+  width: 1536px;
+  height: 1162px;
+  background: #FFFFFF;
+  margin: 0 auto;
+  overflow: auto;
+}
+
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  width: 1536px;
+  background: #FAFAFA;
+}
+
+/* Header */
+.header {
+  width: 1536px;
+  height: 64px;
+  background: #1976D2;
+  box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2);
+}
+
+.header-content {
+  position: relative;
+  width: 1488px;
+  height: 64px;
+  margin-left: 24px;
+}
+
+.logo {
+  position: absolute;
+  left: 52px;
+  top: 16px;
+  color: white;
+  font-weight: 500;
+  font-size: 20px;
+}
+
+.header-icons {
+  position: absolute;
+  right: 0;
+  top: 12px;
+  width: 88px;
+  height: 40px;
+}
+
+/* Welcome Banner */
+.welcome-banner {
+  width: 1488px;
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 32px 24px 0 24px;
+}
+
+.welcome-title {
+  color: white;
+  font-weight: bold;
+  font-size: 34px;
+}
+
+.welcome-text {
+  color: white;
+  opacity: 0.9;
+  font-size: 16px;
+  margin-top: 8px;
+}
+
+/* Stats Cards */
+.stats-container {
+  display: flex;
+  gap: 24px;
+  margin: 32px 24px 0 24px;
+}
+
+.stat-card {
+  padding: 16px;
+  border-radius: 4px;
+  box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2);
+}
+
+.stat-number {
+  color: white;
+  font-weight: 700;
+  font-size: 48px;
+}
+
+.stat-label {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 16px;
+}
+
+.stat-sub {
+  color: white;
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+/* Quick Actions */
+.quick-actions {
+  margin: 32px 24px 0 24px;
+}
+
+.actions-title {
+  color: rgba(0,0,0,0.87);
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.actions-container {
+  display: flex;
+  gap: 16px;
+}
+
+.action-card {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 4px;
+  padding: 16px;
+  cursor: pointer;
+}
+
+/* Empty State */
+.empty-state {
+  background: white;
+  border-radius: 4px;
+  padding: 48px;
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* Additional custom styles for dashboard */
+.dashboard-stats-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.dashboard-stats-card:hover {
+  transform: translateY(-4px);
+}
+
+.dashboard-progress-bar {
+  transition: width 0.5s ease-in-out;
+}
