@@ -36,18 +36,36 @@ public class FeedbackController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<FeedbackEntity>> getAllFeedback() {
-        return ResponseEntity.ok(feedbackRepository.findAll());
+        List<FeedbackEntity> feedbacks = feedbackRepository.findAll();
+        // Ensure status is uppercase
+        for (FeedbackEntity f : feedbacks) {
+            if (f.getStatus() != null) {
+                f.setStatus(f.getStatus().toUpperCase());
+            }
+        }
+        return ResponseEntity.ok(feedbacks);
     }
 
     @GetMapping("/user")
     public ResponseEntity<List<FeedbackEntity>> getUserFeedback(Authentication auth) {
-        return ResponseEntity.ok(feedbackRepository.findByAuthorEmail(auth.getName()));
+        List<FeedbackEntity> feedbacks = feedbackRepository.findByAuthorEmail(auth.getName());
+        for (FeedbackEntity f : feedbacks) {
+            if (f.getStatus() != null) {
+                f.setStatus(f.getStatus().toUpperCase());
+            }
+        }
+        return ResponseEntity.ok(feedbacks);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<FeedbackEntity> getFeedbackById(@PathVariable Long id) {
         return feedbackRepository.findById(id)
-                .map(ResponseEntity::ok)
+                .map(feedback -> {
+                    if (feedback.getStatus() != null) {
+                        feedback.setStatus(feedback.getStatus().toUpperCase());
+                    }
+                    return ResponseEntity.ok(feedback);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -55,7 +73,13 @@ public class FeedbackController {
     public ResponseEntity<FeedbackEntity> createFeedback(@RequestBody FeedbackEntity feedback, Authentication auth) {
         feedback.setFeedbackId(null);
         feedback.setAuthorEmail(auth.getName());
-        feedback.setStatus(feedback.getStatus() == null ? "PENDING" : feedback.getStatus());
+        // Convert status to uppercase
+        String status = feedback.getStatus();
+        if (status == null || status.isEmpty()) {
+            feedback.setStatus("PENDING");
+        } else {
+            feedback.setStatus(status.toUpperCase());
+        }
         feedback.setCreatedAt(LocalDateTime.now());
         feedback.setUpdatedAt(LocalDateTime.now());
         feedback.setVotes(0);
@@ -84,7 +108,8 @@ public class FeedbackController {
         return feedbackRepository.findById(id)
                 .map(existing -> {
                     String oldStatus = existing.getStatus();
-                    String newStatus = payload.get("status");
+                    // Convert new status to uppercase
+                    String newStatus = payload.get("status").toUpperCase();
                     existing.setStatus(newStatus);
                     existing.setUpdatedAt(LocalDateTime.now());
                     FeedbackEntity updated = feedbackRepository.save(existing);

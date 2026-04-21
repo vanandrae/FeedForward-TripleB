@@ -52,6 +52,8 @@ public class SecurityConfig {
                 .antMatchers("/api/auth/login").permitAll()
                 .antMatchers("/api/auth/register").permitAll()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // Admin endpoints - require ADMIN role
+                .antMatchers("/api/admin/**").hasRole("ADMIN")
                 // All other requests require authentication
                 .anyRequest().authenticated()
             .and()
@@ -68,7 +70,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
 

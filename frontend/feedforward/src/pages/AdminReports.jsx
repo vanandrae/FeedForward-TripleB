@@ -13,6 +13,7 @@ const AdminReports = () => {
   const [selectedTab, setSelectedTab] = useState('reports');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -37,10 +38,12 @@ const AdminReports = () => {
   const fetchUsers = async () => {
     try {
       const response = await HttpService.get('/admin/users');
+      console.log('Fetched users:', response);
       setUsers(response || []);
     } catch (error) {
       console.error('Error fetching users:', error);
       setUsers([]);
+      setError('Failed to load users');
     }
   };
 
@@ -56,78 +59,91 @@ const AdminReports = () => {
     }
   };
 
-  const handleDeleteFeedback = async (feedbackId, feedbackTitle, authorEmail) => {
-    if (window.confirm(`Are you sure you want to delete "${feedbackTitle}"? The student will be notified.`)) {
+  const handleDeleteFeedback = async (feedbackId, feedbackTitle) => {
+    if (window.confirm(`Are you sure you want to delete "${feedbackTitle}"?`)) {
+      setActionLoading(true);
       try {
         await HttpService.delete(`/admin/feedback/${feedbackId}`);
         setSuccess(`Feedback "${feedbackTitle}" deleted successfully`);
-        setTimeout(() => setSuccess(''), 3000);
-        
-        // Refresh all data
         fetchReports();
         fetchAllFeedback();
+        setTimeout(() => setSuccess(''), 3000);
       } catch (error) {
         console.error('Error deleting feedback:', error);
         setError('Failed to delete feedback');
         setTimeout(() => setError(''), 3000);
+      } finally {
+        setActionLoading(false);
       }
     }
   };
 
   const handleResolveReport = async (reportId) => {
+    setActionLoading(true);
     try {
       await HttpService.put(`/admin/reports/${reportId}/resolve`, {});
       setSuccess('Report resolved successfully');
-      setTimeout(() => setSuccess(''), 3000);
       fetchReports();
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       console.error('Error resolving report:', error);
       setError('Failed to resolve report');
       setTimeout(() => setError(''), 3000);
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  const handleBanUser = async (userId, userName, isBanned) => {
-    const action = isBanned ? 'unban' : 'ban';
+  const handleBanUser = async (userId, userName, currentStatus) => {
+    const action = currentStatus ? 'unban' : 'ban';
     if (window.confirm(`Are you sure you want to ${action} ${userName}?`)) {
+      setActionLoading(true);
       try {
-        await HttpService.put(`/admin/users/${userId}/ban`, { banned: !isBanned });
+        await HttpService.put(`/admin/users/${userId}/ban`, { banned: !currentStatus });
         setSuccess(`${userName} has been ${action}ned successfully`);
-        setTimeout(() => setSuccess(''), 3000);
         fetchUsers();
+        setTimeout(() => setSuccess(''), 3000);
       } catch (error) {
         console.error('Error banning user:', error);
         setError(`Failed to ${action} user`);
         setTimeout(() => setError(''), 3000);
+      } finally {
+        setActionLoading(false);
       }
     }
   };
 
   const handleDeleteUser = async (userId, userName) => {
     if (window.confirm(`Are you sure you want to permanently delete ${userName}? This action cannot be undone.`)) {
+      setActionLoading(true);
       try {
         await HttpService.delete(`/admin/users/${userId}`);
         setSuccess(`${userName} has been deleted successfully`);
-        setTimeout(() => setSuccess(''), 3000);
         fetchUsers();
+        setTimeout(() => setSuccess(''), 3000);
       } catch (error) {
         console.error('Error deleting user:', error);
         setError('Failed to delete user');
         setTimeout(() => setError(''), 3000);
+      } finally {
+        setActionLoading(false);
       }
     }
   };
 
-  const handleUpdateRole = async (userId, newRole) => {
+  const handleUpdateRole = async (userId, newRole, userName) => {
+    setActionLoading(true);
     try {
       await HttpService.put(`/admin/users/${userId}/role`, { role: newRole });
-      setSuccess(`Role updated to ${newRole}`);
-      setTimeout(() => setSuccess(''), 3000);
+      setSuccess(`${userName}'s role updated to ${newRole}`);
       fetchUsers();
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       console.error('Error updating role:', error);
       setError('Failed to update role');
       setTimeout(() => setError(''), 3000);
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -229,14 +245,16 @@ const AdminReports = () => {
                   
                   <div className="flex gap-3">
                     <button
-                      onClick={() => handleDeleteFeedback(report.feedbackId, report.feedbackTitle, report.reportedBy)}
-                      className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+                      onClick={() => handleDeleteFeedback(report.feedbackId, report.feedbackTitle)}
+                      disabled={actionLoading}
+                      className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm disabled:opacity-50"
                     >
                       Delete Feedback
                     </button>
                     <button
                       onClick={() => handleResolveReport(report.id)}
-                      className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                      disabled={actionLoading}
+                      className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm disabled:opacity-50"
                     >
                       Dismiss Report
                     </button>
@@ -251,70 +269,83 @@ const AdminReports = () => {
         {selectedTab === 'users' && (
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {users.map(user => (
-                    <tr key={user.userId || user.id}>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            {user.fullName?.charAt(0) || user.name?.charAt(0) || 'U'}
-                          </div>
-                          <span className="font-medium">{user.fullName || user.name}</span>
-                        </div>
-                       </td>
-                      <td className="px-6 py-4 text-gray-600">{user.email}</td>
-                      <td className="px-6 py-4 text-gray-600">{user.department || '-'}</td>
-                      <td className="px-6 py-4">
-                        <select
-                          value={user.role}
-                          onChange={(e) => handleUpdateRole(user.userId || user.id, e.target.value)}
-                          className="px-2 py-1 border rounded text-sm capitalize"
-                        >
-                          <option value="student">Student</option>
-                          <option value="faculty">Faculty</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          user.banned ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                        }`}>
-                          {user.banned ? 'Banned' : 'Active'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleBanUser(user.userId || user.id, user.fullName || user.name, user.banned)}
-                            className={`px-2 py-1 rounded text-xs text-white ${
-                              user.banned ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'
-                            }`}
-                          >
-                            {user.banned ? 'Unban' : 'Ban'}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(user.userId || user.id, user.fullName || user.name)}
-                            className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+              {users.length === 0 ? (
+                <div className="p-8 text-center">
+                  <p className="text-gray-500">No users found</p>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {users.map(user => (
+                      <tr key={user.userId || user.id}>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                              <span className="text-sm font-medium text-blue-600">
+                                {(user.fullName || user.name || 'U').charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="font-medium">{user.fullName || user.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-gray-600">{user.email}</td>
+                        <td className="px-6 py-4 text-gray-600">{user.department || '-'}</td>
+                        <td className="px-6 py-4">
+                          <select
+                            value={user.role}
+                            onChange={(e) => handleUpdateRole(user.userId || user.id, e.target.value, user.fullName || user.name)}
+                            disabled={actionLoading}
+                            className="px-2 py-1 border rounded text-sm capitalize focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="student">Student</option>
+                            <option value="faculty">Faculty</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            user.banned ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                          }`}>
+                            {user.banned ? 'Banned' : 'Active'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleBanUser(user.userId || user.id, user.fullName || user.name, user.banned)}
+                              disabled={actionLoading}
+                              className={`px-2 py-1 rounded text-xs text-white transition ${
+                                user.banned 
+                                  ? 'bg-green-600 hover:bg-green-700' 
+                                  : 'bg-yellow-600 hover:bg-yellow-700'
+                              } disabled:opacity-50`}
+                            >
+                              {user.banned ? 'Unban' : 'Ban'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(user.userId || user.id, user.fullName || user.name)}
+                              disabled={actionLoading}
+                              className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 disabled:opacity-50"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         )}
@@ -334,15 +365,18 @@ const AdminReports = () => {
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-800">{feedback.title}</h3>
                       <p className="text-gray-600 text-sm mt-1">{feedback.description}</p>
-                      <div className="flex gap-2 mt-2">
+                      <div className="flex gap-2 mt-2 flex-wrap">
                         <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">{feedback.category}</span>
-                        <span className="text-xs px-2 py-1 bg-gray-100 rounded-full capitalize">{feedback.status}</span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(feedback.status)}`}>
+                          {feedback.status || 'PENDING'}
+                        </span>
                         <span className="text-xs text-gray-400">By: {feedback.authorEmail}</span>
                       </div>
                     </div>
                     <button
-                      onClick={() => handleDeleteFeedback(feedback.feedbackId || feedback.id, feedback.title, feedback.authorEmail)}
-                      className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm ml-4"
+                      onClick={() => handleDeleteFeedback(feedback.feedbackId || feedback.id, feedback.title)}
+                      disabled={actionLoading}
+                      className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm ml-4 disabled:opacity-50"
                     >
                       Delete
                     </button>

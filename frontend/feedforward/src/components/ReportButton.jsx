@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
+import { useAuth } from './AuthContext';
 import HttpService from '../services/HttpService';
 
 const ReportButton = ({ feedbackId, feedbackTitle }) => {
+  const { isAdmin, isFaculty } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Don't render button for admins
+  if (isAdmin) {
+    return null;
+  }
+
+  // Only faculty can report
+  if (!isFaculty) {
+    return null;
+  }
 
   const handleReport = async () => {
     if (!reason.trim()) {
@@ -69,6 +81,17 @@ const ReportButton = ({ feedbackId, feedbackTitle }) => {
                 <option value="offensive">Offensive language</option>
                 <option value="other">Other</option>
               </select>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm mb-2">Additional details (optional)</label>
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows="3"
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="Please provide more details..."
+              />
             </div>
 
             <div className="flex gap-3 justify-end">
