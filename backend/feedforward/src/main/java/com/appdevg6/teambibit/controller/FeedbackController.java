@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 @RestController
 @RequestMapping("/api/feedback")
@@ -30,8 +32,9 @@ public class FeedbackController {
     @Autowired
     private NotificationRepository notificationRepository;
 
+    // ALL authenticated users (including STUDENTS) can see all feedback
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<FeedbackEntity>> getAllFeedback() {
         return ResponseEntity.ok(feedbackRepository.findAll());
     }
@@ -55,6 +58,8 @@ public class FeedbackController {
         feedback.setStatus(feedback.getStatus() == null ? "PENDING" : feedback.getStatus());
         feedback.setCreatedAt(LocalDateTime.now());
         feedback.setUpdatedAt(LocalDateTime.now());
+        feedback.setVotes(0);
+        feedback.setUpvotedUsers(new HashSet<>());
         return ResponseEntity.ok(feedbackRepository.save(feedback));
     }
 
@@ -139,16 +144,54 @@ public class FeedbackController {
     // ========== UPVOTE ENDPOINTS ==========
     
     @PostMapping("/{id}/upvote")
-    public ResponseEntity<?> upvoteFeedback(@PathVariable Long id, Authentication auth) {
+    public ResponseEntity<?> toggleUpvote(@PathVariable Long id, Authentication auth) {
         return feedbackRepository.findById(id)
                 .map(feedback -> {
-                    int currentVotes = feedback.getVotes() != null ? feedback.getVotes() : 0;
-                    feedback.setVotes(currentVotes + 1);
-                    feedbackRepository.save(feedback);
+                    String userEmail = auth.getName();
+                    Set<String> upvotedUsers = feedback.getUpvotedUsers();
+                    if (upvotedUsers == null) {
+                        upvotedUsers = new HashSet<>();
+                    }
                     
+                    int currentVotes = feedback.getVotes() != null ? feedback.getVotes() : 0;
+                    
+                    if (upvotedUsers.contains(userEmail)) {
+                        // User already upvoted - remove upvote
+                        upvotedUsers.remove(userEmail);
+                        feedback.setVotes(currentVotes - 1);
+                        feedback.setUpvotedUsers(upvotedUsers);
+                        feedbackRepository.save(feedback);
+                        
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("message", "Upvote removed successfully");
+                        response.put("votes", feedback.getVotes());
+                        response.put("upvoted", false);
+                        return ResponseEntity.ok(response);
+                    } else {
+                        // User hasn't upvoted yet - add upvote
+                        upvotedUsers.add(userEmail);
+                        feedback.setVotes(currentVotes + 1);
+                        feedback.setUpvotedUsers(upvotedUsers);
+                        feedbackRepository.save(feedback);
+                        
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("message", "Upvoted successfully");
+                        response.put("votes", feedback.getVotes());
+                        response.put("upvoted", true);
+                        return ResponseEntity.ok(response);
+                    }
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @GetMapping("/{id}/has-upvoted")
+    public ResponseEntity<?> hasUserUpvoted(@PathVariable Long id, Authentication auth) {
+        return feedbackRepository.findById(id)
+                .map(feedback -> {
+                    Set<String> upvotedUsers = feedback.getUpvotedUsers();
+                    boolean hasUpvoted = upvotedUsers != null && upvotedUsers.contains(auth.getName());
                     Map<String, Object> response = new HashMap<>();
-                    response.put("message", "Upvoted successfully");
-                    response.put("votes", feedback.getVotes());
+                    response.put("hasUpvoted", hasUpvoted);
                     return ResponseEntity.ok(response);
                 })
                 .orElse(ResponseEntity.notFound().build());

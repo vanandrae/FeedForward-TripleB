@@ -14,15 +14,16 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 
 // Main layout component (only rendered when authenticated)
+// Main layout component (only rendered when authenticated)
 const MainLayout = ({ children }) => {
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex-1 ml-64">
+      <div className="flex-1 ml-64 overflow-y-auto">
         <Navbar />
-        <div className="mt-16">
+        <main className="pt-16">
           {children}
-        </div>
+        </main>
       </div>
     </div>
   );

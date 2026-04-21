@@ -2,6 +2,8 @@ package com.appdevg6.teambibit.entity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "feedbacks")
@@ -39,13 +41,14 @@ public class FeedbackEntity {
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    // Add this field to FeedbackEntity.java
-@Column(name = "votes")
-private Integer votes = 0;
-
-public Integer getVotes() { return votes; }
-public void setVotes(Integer votes) { this.votes = votes; }
+    
+    @Column(name = "votes")
+    private Integer votes = 0;
+    
+    @ElementCollection
+    @CollectionTable(name = "feedback_upvotes", joinColumns = @JoinColumn(name = "feedback_id"))
+    @Column(name = "user_email")
+    private Set<String> upvotedUsers = new HashSet<>();
     
     @PrePersist
     protected void onCreate() {
@@ -53,6 +56,8 @@ public void setVotes(Integer votes) { this.votes = votes; }
         updatedAt = LocalDateTime.now();
         if (status == null) status = "PENDING";
         if (priority == null) priority = "MEDIUM";
+        if (votes == null) votes = 0;
+        if (upvotedUsers == null) upvotedUsers = new HashSet<>();
     }
     
     @PreUpdate
@@ -90,4 +95,10 @@ public void setVotes(Integer votes) { this.votes = votes; }
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    public Integer getVotes() { return votes; }
+    public void setVotes(Integer votes) { this.votes = votes; }
+    
+    public Set<String> getUpvotedUsers() { return upvotedUsers; }
+    public void setUpvotedUsers(Set<String> upvotedUsers) { this.upvotedUsers = upvotedUsers; }
 }

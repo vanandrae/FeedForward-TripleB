@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
-import { validateEmail, validatePassword } from './Validation';
 import './AuthStyles.css';
 
 const LoginForm = () => {
@@ -17,38 +16,27 @@ const LoginForm = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-    
-    if (!validatePassword(formData.password)) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!formData.email || !formData.password) {
+      setErrors({ general: 'Please fill in all fields' });
+      return;
+    }
     
     setLoading(true);
+    console.log('Attempting login with:', formData.email);
+    
     const result = await login(formData.email, formData.password);
     setLoading(false);
     
     if (!result.success) {
-      setErrors({ general: result.message });
+      setErrors({ general: result.message || 'Login failed. Please check your credentials.' });
     }
   };
 
@@ -66,11 +54,10 @@ const LoginForm = () => {
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className={`form-input ${errors.email ? 'form-input-error' : ''}`}
+          className="form-input"
           placeholder="Enter your email"
           required
         />
-        {errors.email && <span className="form-error">{errors.email}</span>}
       </div>
 
       <div className="form-group">
@@ -82,7 +69,7 @@ const LoginForm = () => {
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className={`form-input ${errors.password ? 'form-input-error' : ''}`}
+            className="form-input"
             placeholder="Enter your password"
             required
           />
@@ -94,7 +81,6 @@ const LoginForm = () => {
             {showPassword ? '👁️' : '👁️‍🗨️'}
           </button>
         </div>
-        {errors.password && <span className="form-error">{errors.password}</span>}
       </div>
 
       <div className="form-options">
