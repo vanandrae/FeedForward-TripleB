@@ -1,4 +1,4 @@
-// src/components/AuthContext.js
+// src/components/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import HttpService from '../services/HttpService';
 import { API_ENDPOINTS } from '../services/ApiConstants';
@@ -25,30 +25,56 @@ export const AuthProvider = ({ children }) => {
     const userData = localStorage.getItem('userData');
     
     if (token && userData) {
-      setUser(JSON.parse(userData));
-      setIsAuthenticated(true);
-      setUserRole(JSON.parse(userData).role);
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+        setUserRole(parsedUser.role);
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
     }
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     try {
+      console.log('========== LOGIN ATTEMPT ==========');
+      console.log('Email:', email);
+      console.log('Password length:', password?.length);
+      console.log('API Endpoint:', API_ENDPOINTS.LOGIN);
+      
       const response = await HttpService.post(API_ENDPOINTS.LOGIN, { email, password });
       
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('userData', JSON.stringify(response));
-      setUser(response);
-      setIsAuthenticated(true);
-      setUserRole(response.role);
-      return { success: true };
+      console.log('Login response status:', response);
+      console.log('Response token exists:', !!response.token);
+      
+      if (response.token) {
+        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('userData', JSON.stringify(response));
+        setUser(response);
+        setIsAuthenticated(true);
+        setUserRole(response.role);
+        console.log('✅ Login successful!');
+        return { success: true };
+      } else {
+        console.error('❌ No token in response');
+        return { success: false, message: 'Invalid response from server' };
+      }
     } catch (error) {
-      return { success: false, message: error.message };
+      console.error('❌ Login error details:', error);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error headers:', error.response?.headers);
+      return { success: false, message: error.response?.data?.message || error.message || 'Login failed' };
     }
   };
 
   const register = async (userData) => {
     try {
+      console.log('========== REGISTRATION ATTEMPT ==========');
+      console.log('Email:', userData.email);
+      
       const response = await HttpService.post(API_ENDPOINTS.REGISTER, {
         name: userData.name,
         email: userData.email,
@@ -57,20 +83,18 @@ export const AuthProvider = ({ children }) => {
         department: userData.department
       });
       
-      // Auto login after registration
-      const loginResponse = await HttpService.post(API_ENDPOINTS.LOGIN, {
-        email: userData.email,
-        password: userData.password
-      });
+      console.log('Registration response:', response);
       
-      localStorage.setItem('authToken', loginResponse.token);
-      localStorage.setItem('userData', JSON.stringify(loginResponse));
-      setUser(loginResponse);
-      setIsAuthenticated(true);
-      setUserRole(loginResponse.role);
-      return { success: true };
+      if (response.message === "User registered successfully!") {
+        console.log('✅ Registration successful, auto-logging in...');
+        const loginResult = await login(userData.email, userData.password);
+        return loginResult;
+      }
+      
+      return { success: false, message: response.message || 'Registration failed' };
     } catch (error) {
-      return { success: false, message: error.message };
+      console.error('Registration error:', error);
+      return { success: false, message: error.message || 'Registration failed' };
     }
   };
 
@@ -80,6 +104,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
     setUserRole(null);
+    console.log('🔓 User logged out');
   };
 
   const value = {

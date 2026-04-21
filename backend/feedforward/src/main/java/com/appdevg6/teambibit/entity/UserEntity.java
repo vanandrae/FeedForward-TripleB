@@ -30,6 +30,13 @@ public class UserEntity {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    // Add to UserEntity.java
+    @Column(name = "banned")
+    private boolean banned = false;
+
+    public boolean isBanned() { return banned; }
+    public void setBanned(boolean banned) { this.banned = banned; }
+
     public UserEntity() {}
 
     public UserEntity(String fullName, String email, String password, String role, String department) {

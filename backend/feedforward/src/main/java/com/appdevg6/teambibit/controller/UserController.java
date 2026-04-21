@@ -28,14 +28,19 @@ public class UserController {
         return ResponseEntity.ok(userService.getProfileByEmail(authentication.getName()));
     }
 
-    @PutMapping("/profile")
-    public ResponseEntity<Map<String, Object>> updateProfile(Authentication authentication,
-                                                             @RequestBody Map<String, String> payload) {
-        return ResponseEntity.ok(userService.updateProfileByEmail(authentication.getName(), payload));
-    }
+    // Add this to your UserController.java
+@PutMapping("/profile")
+public ResponseEntity<Map<String, Object>> updateProfile(Authentication authentication,
+                                                         @RequestBody Map<String, String> payload) {
+    String email = authentication.getName();
+    Map<String, Object> response = userService.updateProfileByEmail(email, payload);
+    return ResponseEntity.ok(response);
+}
 
     @GetMapping("/feedback")
     public ResponseEntity<List<FeedbackEntity>> getUserFeedback(Authentication authentication) {
         return ResponseEntity.ok(feedbackService.getFeedbackByAuthorEmail(authentication.getName()));
     }
+
+
 }

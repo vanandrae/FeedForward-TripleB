@@ -1,9 +1,11 @@
 // src/services/Interceptor.js
-import axios from 'axios';
+// Remove the axios import since it's not used
 
 // Get token from localStorage
 const getToken = () => {
-  return localStorage.getItem('authToken');
+  const token = localStorage.getItem('authToken');
+  console.log('Token found:', token ? 'Yes' : 'No');
+  return token;
 };
 
 // Set token in headers
@@ -11,32 +13,23 @@ const setAuthHeader = (config) => {
   const token = getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log('Authorization header set for:', config.url);
+  } else {
+    console.log('No token found for:', config.url);
   }
   return config;
 };
 
 // Handle response errors
 const handleResponseError = (error) => {
-  const originalRequest = error.config;
-
+  console.log('Response error:', error.response?.status, error.config?.url);
+  
   // Handle 401 Unauthorized
-  if (error.response?.status === 401 && !originalRequest._retry) {
-    originalRequest._retry = true;
-    
-    // Try to refresh token
-    return refreshToken()
-      .then((newToken) => {
-        localStorage.setItem('authToken', newToken);
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return axios(originalRequest);
-      })
-      .catch(() => {
-        // Redirect to login if refresh fails
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
-        window.location.href = '/login';
-        return Promise.reject(error);
-      });
+  if (error.response?.status === 401) {
+    console.log('Unauthorized - clearing token and redirecting');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    window.location.href = '/login';
   }
 
   // Handle 403 Forbidden
@@ -55,14 +48,6 @@ const handleResponseError = (error) => {
   }
 
   return Promise.reject(error);
-};
-
-// Mock refresh token function (replace with actual API call)
-const refreshToken = async () => {
-  // Implement your token refresh logic here
-  // const response = await axios.post('/auth/refresh', { refreshToken: localStorage.getItem('refreshToken') });
-  // return response.data.token;
-  return Promise.reject('Refresh not implemented');
 };
 
 // Request interceptor

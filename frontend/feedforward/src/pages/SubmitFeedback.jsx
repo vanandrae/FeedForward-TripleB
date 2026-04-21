@@ -1,4 +1,3 @@
-// src/pages/SubmitFeedback.jsx
 import React, { useState } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +5,7 @@ import HttpService from '../services/HttpService';
 import { API_ENDPOINTS } from '../services/ApiConstants';
 
 const SubmitFeedback = () => {
-  const { user } = useAuth();
+  const { user, isStudent, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -16,6 +15,25 @@ const SubmitFeedback = () => {
     description: '',
     priority: 'medium'
   });
+
+  // Redirect if not student
+  if (!isStudent && isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-800">Access Denied</h2>
+          <p className="text-gray-600 mt-2">Only students can submit feedback.</p>
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();

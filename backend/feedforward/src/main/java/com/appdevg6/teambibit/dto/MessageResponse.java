@@ -3,6 +3,8 @@ package com.appdevg6.teambibit.dto;
 public class MessageResponse {
     private String message;
 
+    public MessageResponse() {}
+
     public MessageResponse(String message) {
         this.message = message;
     }

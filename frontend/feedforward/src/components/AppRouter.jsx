@@ -1,4 +1,3 @@
-// src/components/AppRouter.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './AuthContext';
@@ -7,6 +6,8 @@ import SubmitFeedback from '../pages/SubmitFeedback';
 import ViewFeedback from '../pages/ViewFeedback';
 import FeedbackDetails from '../pages/FeedbackDetails';
 import Profile from '../pages/Profile';
+import Reports from '../pages/Reports';
+import AdminReports from '../pages/AdminReports';
 import Login from './Login';
 import Register from './Register';
 import Navbar from './Navbar';
@@ -66,6 +67,32 @@ const ProtectedRoute = ({ children }) => {
   return <MainLayout>{children}</MainLayout>;
 };
 
+// Admin only route wrapper
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, isAdmin, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl mb-2">Loading...</div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <MainLayout>{children}</MainLayout>;
+};
+
 // Public Route wrapper
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -104,7 +131,7 @@ const AppContent = () => {
         </PublicRoute>
       } />
       
-      {/* Protected Routes */}
+      {/* Protected Routes - All authenticated users */}
       <Route path="/" element={
         <ProtectedRoute>
           <Dashboard />
@@ -135,9 +162,21 @@ const AppContent = () => {
           <Profile />
         </ProtectedRoute>
       } />
+      <Route path="/reports" element={
+        <ProtectedRoute>
+          <Reports />
+        </ProtectedRoute>
+      } />
+      
+      {/* Admin Only Routes */}
+      <Route path="/admin/reports" element={
+        <AdminRoute>
+          <AdminReports />
+        </AdminRoute>
+      } />
       
       {/* Catch all */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 };

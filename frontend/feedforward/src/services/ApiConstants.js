@@ -28,4 +28,6 @@ export const API_ENDPOINTS = {
   UPDATE_USER_ROLE: '/admin/users/role',
 };
 
+console.log('📋 API Constants loaded, BASE_URL:', API_BASE_URL);
+
 export default API_BASE_URL;

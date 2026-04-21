@@ -32,6 +32,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        
+        String path = request.getServletPath();
+        
+        // Skip authentication for public endpoints
+        if (path.startsWith("/api/auth/") || "OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -43,6 +52,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 if (optionalUser.isPresent() && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserEntity user = optionalUser.get();
+                    
+                    // Check if user is banned
+                    if (user.isBanned()) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.getWriter().write("User is banned");
+                        return;
+                    }
+                    
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             user.getEmail(),
                             null,

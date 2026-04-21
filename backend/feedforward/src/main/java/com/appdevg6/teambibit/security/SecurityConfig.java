@@ -5,13 +5,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -20,6 +21,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -44,10 +46,13 @@ public class SecurityConfig {
             .cors().configurationSource(corsConfigurationSource())
             .and()
             .csrf().disable()
-            .authorizeRequests()  // Use authorizeRequests instead of authorizeHttpRequests
-                .antMatchers("/api/auth/**").permitAll()  // Use antMatchers
+            .authorizeRequests()
+                // Public endpoints - NO authentication required
+                .antMatchers("/api/auth/**").permitAll()
+                .antMatchers("/api/auth/login").permitAll()
+                .antMatchers("/api/auth/register").permitAll()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .antMatchers("/api/admin/**").hasRole("ADMIN")
+                // All other requests require authentication
                 .anyRequest().authenticated()
             .and()
             .sessionManagement()
