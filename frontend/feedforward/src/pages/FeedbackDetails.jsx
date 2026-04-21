@@ -53,13 +53,24 @@ const FeedbackDetails = () => {
   };
 
   const handleUpdateStatus = async (status) => {
-    try {
-      await HttpService.put(`${API_ENDPOINTS.UPDATE_FEEDBACK_STATUS}/${id}`, { status });
-      fetchFeedbackDetails();
-    } catch (error) {
-      console.error('Error updating status:', error);
-    }
-  };
+  try {
+    console.log('Updating status to:', status);
+    console.log('Feedback ID:', id);
+    
+    // Make sure the URL is correct
+    const response = await HttpService.put(`/feedback/${id}/status`, { status });
+    console.log('Status update response:', response);
+    
+    // Refresh feedback details
+    await fetchFeedbackDetails();
+    
+    // Show success message
+    alert(`Status updated to ${status}`);
+  } catch (error) {
+    console.error('Error updating status:', error);
+    alert('Failed to update status: ' + (error.message || 'Unknown error'));
+  }
+};
 
   const handleUpvote = async () => {
     try {

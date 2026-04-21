@@ -1,13 +1,18 @@
 package com.appdevg6.teambibit.controller;
 
 import com.appdevg6.teambibit.entity.FeedbackEntity;
+import com.appdevg6.teambibit.entity.CommentEntity;
+import com.appdevg6.teambibit.entity.NotificationEntity;
 import com.appdevg6.teambibit.repository.FeedbackRepository;
+import com.appdevg6.teambibit.repository.CommentRepository;
+import com.appdevg6.teambibit.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,9 +23,15 @@ public class FeedbackController {
 
     @Autowired
     private FeedbackRepository feedbackRepository;
+    
+    @Autowired
+    private CommentRepository commentRepository;
+    
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY')")
     public ResponseEntity<List<FeedbackEntity>> getAllFeedback() {
         return ResponseEntity.ok(feedbackRepository.findAll());
     }
@@ -64,23 +75,82 @@ public class FeedbackController {
 
     @PutMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('FACULTY', 'ADMIN')")
-    public ResponseEntity<FeedbackEntity> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+    public ResponseEntity<FeedbackEntity> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> payload, Authentication auth) {
         return feedbackRepository.findById(id)
                 .map(existing -> {
-                    existing.setStatus(payload.get("status"));
+                    String oldStatus = existing.getStatus();
+                    String newStatus = payload.get("status");
+                    existing.setStatus(newStatus);
                     existing.setUpdatedAt(LocalDateTime.now());
-                    return ResponseEntity.ok(feedbackRepository.save(existing));
+                    FeedbackEntity updated = feedbackRepository.save(existing);
+                    
+                    // Send notification to feedback author about status change
+                    if (!oldStatus.equals(newStatus)) {
+                        NotificationEntity notification = new NotificationEntity();
+                        notification.setUserEmail(existing.getAuthorEmail());
+                        notification.setTitle("Feedback Status Updated");
+                        notification.setMessage("Your feedback \"" + existing.getTitle() + "\" status changed from " + oldStatus + " to " + newStatus);
+                        notification.setType("status_change");
+                        notification.setRelatedId(id);
+                        notification.setCreatedAt(LocalDateTime.now());
+                        notificationRepository.save(notification);
+                    }
+                    
+                    return ResponseEntity.ok(updated);
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<?> deleteFeedback(@PathVariable Long id) {
-        if (feedbackRepository.existsById(id)) {
-            feedbackRepository.deleteById(id);
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.notFound().build();
+    
+    // ========== COMMENTS ENDPOINTS ==========
+    
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<List<CommentEntity>> getComments(@PathVariable Long id) {
+        return ResponseEntity.ok(commentRepository.findByFeedbackIdOrderByCreatedAtDesc(id));
+    }
+    
+    @PostMapping("/{id}/comments")
+    public ResponseEntity<CommentEntity> addComment(@PathVariable Long id, @RequestBody Map<String, String> payload, Authentication auth) {
+        return feedbackRepository.findById(id)
+                .map(feedback -> {
+                    CommentEntity comment = new CommentEntity();
+                    comment.setFeedbackId(id);
+                    comment.setAuthorEmail(auth.getName());
+                    comment.setContent(payload.get("comment"));
+                    comment.setCreatedAt(LocalDateTime.now());
+                    CommentEntity saved = commentRepository.save(comment);
+                    
+                    // Send notification to feedback author
+                    if (!feedback.getAuthorEmail().equals(auth.getName())) {
+                        NotificationEntity notification = new NotificationEntity();
+                        notification.setUserEmail(feedback.getAuthorEmail());
+                        notification.setTitle("New Comment on Your Feedback");
+                        notification.setMessage(auth.getName() + " commented on your feedback: \"" + feedback.getTitle() + "\"");
+                        notification.setType("comment");
+                        notification.setRelatedId(id);
+                        notification.setCreatedAt(LocalDateTime.now());
+                        notificationRepository.save(notification);
+                    }
+                    
+                    return ResponseEntity.ok(saved);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // ========== UPVOTE ENDPOINTS ==========
+    
+    @PostMapping("/{id}/upvote")
+    public ResponseEntity<?> upvoteFeedback(@PathVariable Long id, Authentication auth) {
+        return feedbackRepository.findById(id)
+                .map(feedback -> {
+                    int currentVotes = feedback.getVotes() != null ? feedback.getVotes() : 0;
+                    feedback.setVotes(currentVotes + 1);
+                    feedbackRepository.save(feedback);
+                    
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("message", "Upvoted successfully");
+                    response.put("votes", feedback.getVotes());
+                    return ResponseEntity.ok(response);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }

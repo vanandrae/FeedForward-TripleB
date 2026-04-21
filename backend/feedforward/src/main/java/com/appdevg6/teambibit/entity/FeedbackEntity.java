@@ -39,6 +39,13 @@ public class FeedbackEntity {
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // Add this field to FeedbackEntity.java
+@Column(name = "votes")
+private Integer votes = 0;
+
+public Integer getVotes() { return votes; }
+public void setVotes(Integer votes) { this.votes = votes; }
     
     @PrePersist
     protected void onCreate() {

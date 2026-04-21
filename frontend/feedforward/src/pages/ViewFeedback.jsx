@@ -6,34 +6,38 @@ import { API_ENDPOINTS } from '../services/ApiConstants';
 import ReportButton from '../components/ReportButton';
 
 const ViewFeedback = () => {
-  const { isAdmin, isFaculty, isStudent } = useAuth(); // Removed unused 'user'
+  const { isAdmin, isFaculty, isStudent } = useAuth();
   const navigate = useNavigate();
   const [feedbackList, setFeedbackList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
 
-  // Wrap fetchFeedback in useCallback to prevent infinite loop
   const fetchFeedback = useCallback(async () => {
     try {
       let response;
-      if (isAdmin) {
-        // Admin sees all feedback
+      
+      // Admin and Faculty can see ALL feedback
+      if (isAdmin || isFaculty) {
         response = await HttpService.get(API_ENDPOINTS.GET_ALL_FEEDBACK);
+        console.log('All feedback (Admin/Faculty):', response);
       } else {
-        // Students and Faculty see their own feedback
+        // Students see only their own feedback
         response = await HttpService.get(API_ENDPOINTS.GET_USER_FEEDBACK);
+        console.log('My feedback (Student):', response);
       }
-      setFeedbackList(response);
+      
+      setFeedbackList(response || []);
     } catch (error) {
       console.error('Error fetching feedback:', error);
+      setFeedbackList([]);
     } finally {
       setLoading(false);
     }
-  }, [isAdmin]); // Add isAdmin as dependency
+  }, [isAdmin, isFaculty]);
 
   useEffect(() => {
     fetchFeedback();
-  }, [fetchFeedback]); // Add fetchFeedback as dependency
+  }, [fetchFeedback]);
 
   const getStatusColor = (status) => {
     switch(status?.toLowerCase()) {
@@ -60,7 +64,7 @@ const ViewFeedback = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">
-          {isAdmin ? 'All Feedback' : 'My Feedback'}
+          {isAdmin ? 'All Feedback (Admin View)' : isFaculty ? 'All Student Feedback (Faculty View)' : 'My Feedback'}
         </h1>
         
         {/* Filters */}
@@ -99,7 +103,7 @@ const ViewFeedback = () => {
         ) : (
           <div className="space-y-4">
             {filteredFeedback.map((feedback) => (
-              <div key={feedback.feedbackId} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
+              <div key={feedback.feedbackId || feedback.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
@@ -117,6 +121,9 @@ const ViewFeedback = () => {
                         Priority: {feedback.priority}
                       </span>
                       <span className="text-xs text-gray-400">
+                        By: {feedback.authorEmail || 'Anonymous'}
+                      </span>
+                      <span className="text-xs text-gray-400">
                         Submitted: {new Date(feedback.createdAt).toLocaleDateString()}
                       </span>
                     </div>
@@ -124,7 +131,7 @@ const ViewFeedback = () => {
                   
                   <div className="flex gap-2 ml-4">
                     <button
-                      onClick={() => navigate(`/feedback/${feedback.feedbackId}`)}
+                      onClick={() => navigate(`/feedback/${feedback.feedbackId || feedback.id}`)}
                       className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded transition text-sm"
                     >
                       View Details
@@ -132,7 +139,7 @@ const ViewFeedback = () => {
                     
                     {/* Report button for Faculty and Admin */}
                     {(isFaculty || isAdmin) && (
-                      <ReportButton feedbackId={feedback.feedbackId} feedbackTitle={feedback.title} />
+                      <ReportButton feedbackId={feedback.feedbackId || feedback.id} feedbackTitle={feedback.title} />
                     )}
                   </div>
                 </div>
