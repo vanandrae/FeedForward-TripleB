@@ -159,7 +159,7 @@ const FeedbackDetails = () => {
                   </span>
                   {feedback.anonymous && (
                     <span className="px-2 py-1 bg-gray-100 rounded-full text-xs text-gray-500">
-                      🤫 Anonymous
+                      Anonymous
                     </span>
                   )}
                 </div>
@@ -228,7 +228,7 @@ const FeedbackDetails = () => {
                             {comment.isAnonymous ? 'Anonymous' : comment.authorName}
                           </span>
                           {comment.isAnonymous && (
-                            <span className="text-xs text-gray-400 ml-2">🤫</span>
+                            <span className="text-xs text-gray-400 ml-2"></span>
                           )}
                           <span className="text-xs text-gray-500 ml-2">
                             {new Date(comment.createdAt).toLocaleString()}

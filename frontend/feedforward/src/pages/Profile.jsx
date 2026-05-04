@@ -4,7 +4,6 @@ import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import HttpService from '../services/HttpService';
 import { API_ENDPOINTS } from '../services/ApiConstants';
-import ProfilePictureUpload from '../components/ProfilePictureUpload';
 
 const Profile = () => {
   const { user, logout, isAuthenticated, isFaculty } = useAuth();
@@ -14,15 +13,13 @@ const Profile = () => {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [showPictureUpload, setShowPictureUpload] = useState(false);
   const [profile, setProfile] = useState({
     userId: '',
     fullName: '',
     email: '',
     role: '',
     department: '',
-    createdAt: '',
-    profilePicture: ''
+    createdAt: ''
   });
   const [formData, setFormData] = useState({
     fullName: '',
@@ -59,8 +56,7 @@ const Profile = () => {
         email: response.email || '',
         role: response.role || 'student',
         department: response.department || '',
-        createdAt: response.createdAt || response.created_at || '',
-        profilePicture: response.profilePicture || ''
+        createdAt: response.createdAt || response.created_at || ''
       });
       
       setFormData({
@@ -79,6 +75,7 @@ const Profile = () => {
 
   const fetchFeedbackStats = async () => {
     try {
+      // Fetch user's feedback to calculate stats
       const response = await HttpService.get(API_ENDPOINTS.GET_USER_FEEDBACK);
       const feedbacks = response || [];
       
@@ -92,19 +89,6 @@ const Profile = () => {
       setFeedbackStats(stats);
     } catch (error) {
       console.error('Error fetching feedback stats:', error);
-    }
-  };
-
-  const handleProfilePictureUpload = async (imageData) => {
-    try {
-      await HttpService.put('/user/profile-picture', { profilePicture: imageData });
-      setProfile(prev => ({ ...prev, profilePicture: imageData }));
-      setShowPictureUpload(false);
-      setSuccess('Profile picture updated successfully!');
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (error) {
-      setError('Failed to update profile picture');
-      setTimeout(() => setError(''), 3000);
     }
   };
 
@@ -226,22 +210,8 @@ const Profile = () => {
           {/* Header with Gradient */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
             <div className="flex items-center gap-4">
-              {/* Profile Picture with Upload Button */}
-              <div className="relative">
-                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-4xl font-bold backdrop-blur-sm overflow-hidden">
-                  {profile.profilePicture ? (
-                    <img src={profile.profilePicture} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    profile.fullName ? profile.fullName.charAt(0).toUpperCase() : 'U'
-                  )}
-                </div>
-                <button
-                  onClick={() => setShowPictureUpload(true)}
-                  className="absolute -bottom-2 -right-2 bg-blue-600 text-white rounded-full p-1.5 shadow-lg hover:bg-blue-700 transition text-xs"
-                  title="Change profile picture"
-                >
-                  📷
-                </button>
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-4xl font-bold backdrop-blur-sm">
+                {profile.fullName ? profile.fullName.charAt(0).toUpperCase() : 'U'}
               </div>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold">{profile.fullName || 'User'}</h1>
@@ -427,15 +397,6 @@ const Profile = () => {
           </div>
         )}
       </div>
-
-      {/* Profile Picture Upload Modal */}
-      {showPictureUpload && (
-        <ProfilePictureUpload
-          currentImage={profile.profilePicture}
-          onImageUpload={handleProfilePictureUpload}
-          onClose={() => setShowPictureUpload(false)}
-        />
-      )}
     </div>
   );
 };

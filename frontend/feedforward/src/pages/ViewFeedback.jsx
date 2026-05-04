@@ -264,7 +264,7 @@ const ViewFeedback = () => {
                       </span>
                       {feedback.anonymous && (
                         <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-500">
-                          🤫 Anonymous
+                          Anonymous
                         </span>
                       )}
                     </div>
