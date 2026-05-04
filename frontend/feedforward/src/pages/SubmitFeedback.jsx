@@ -5,7 +5,7 @@ import HttpService from '../services/HttpService';
 import { API_ENDPOINTS } from '../services/ApiConstants';
 
 const SubmitFeedback = () => {
-  const { user, isStudent, isAuthenticated } = useAuth();
+  const { isStudent, isAdmin, isAuthenticated } = useAuth(); // Removed unused 'user'
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -13,11 +13,30 @@ const SubmitFeedback = () => {
     title: '',
     category: 'bug',
     description: '',
-    priority: 'medium'
+    priority: 'medium',
+    anonymous: false
   });
 
+  // Rest of the code remains the same...
 
-  
+  // Allow both students AND admins to submit feedback
+  if (!isStudent && !isAdmin && isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-800">Access Denied</h2>
+          <p className="text-gray-600 mt-2">Only students and admins can submit feedback.</p>
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,11 +45,15 @@ const SubmitFeedback = () => {
     
     try {
       await HttpService.post(API_ENDPOINTS.CREATE_FEEDBACK, {
-        ...formData,
-        authorEmail: user?.email
+        title: formData.title,
+        category: formData.category,
+        description: formData.description,
+        priority: formData.priority,
+        anonymous: formData.anonymous  // Send anonymous flag
       });
       navigate('/dashboard');
     } catch (err) {
+      console.error('Error submitting feedback:', err);
       setError(err.message || 'Failed to submit feedback');
     } finally {
       setLoading(false);
@@ -99,6 +122,22 @@ const SubmitFeedback = () => {
                 onChange={(e) => setFormData({...formData, description: e.target.value})} 
                 required 
               />
+            </div>
+            
+            {/* Anonymous Checkbox */}
+            <div className="mb-6">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.anonymous}
+                  onChange={(e) => setFormData({...formData, anonymous: e.target.checked})}
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span className="text-gray-700">
+                  <span className="font-medium">Submit anonymously</span>
+                  <span className="text-sm text-gray-500 ml-2">- Your name will not be shown publicly</span>
+                </span>
+              </label>
             </div>
             
             <div className="flex gap-3">

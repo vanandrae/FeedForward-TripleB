@@ -9,8 +9,7 @@ const Reports = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [reportType, setReportType] = useState('feedback');
-  const [dateRange, setDateRange] = useState('monthly');
-  const [format, setFormat] = useState('csv');
+  const [format, setFormat] = useState('csv'); // Removed unused dateRange
   const [stats, setStats] = useState({
     totalFeedback: 0,
     resolved: 0,
@@ -19,7 +18,6 @@ const Reports = () => {
     avgResolutionTime: 0
   });
   const [feedbackData, setFeedbackData] = useState([]);
-  const [generatedReport, setGeneratedReport] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -70,7 +68,6 @@ const Reports = () => {
         }));
         break;
       case 'users':
-        // This would need a users endpoint
         data = [{ message: 'User report - feature coming soon' }];
         break;
       case 'department':
@@ -126,102 +123,13 @@ const Reports = () => {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
     
-    setGeneratedReport(csvContent);
     alert('Report generated and downloaded successfully!');
-  };
-
-  const generatePDF = () => {
-    // For PDF, we'll create an HTML report that can be printed
-    const reportHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>FeedForward Report</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 40px; }
-          h1 { color: #1976D2; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background-color: #1976D2; color: white; }
-          .stats { display: flex; gap: 20px; margin: 20px 0; }
-          .stat-card { background: #f5f5f5; padding: 15px; border-radius: 8px; flex: 1; }
-          .stat-number { font-size: 24px; font-weight: bold; color: #1976D2; }
-        </style>
-      </head>
-      <body>
-        <h1>FeedForward Report - ${reportType.toUpperCase()}</h1>
-        <p>Generated on: ${new Date().toLocaleString()}</p>
-        
-        <div class="stats">
-          <div class="stat-card">
-            <div>Total Feedback</div>
-            <div class="stat-number">${stats.totalFeedback}</div>
-          </div>
-          <div class="stat-card">
-            <div>Resolved</div>
-            <div class="stat-number">${stats.resolved}</div>
-          </div>
-          <div class="stat-card">
-            <div>Pending</div>
-            <div class="stat-number">${stats.pending}</div>
-          </div>
-          <div class="stat-card">
-            <div>In Review</div>
-            <div class="stat-number">${stats.inReview}</div>
-          </div>
-        </div>
-        
-        <h2>Report Data</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Category</th>
-              <th>Status</th>
-              <th>Author</th>
-              <th>Date</th>
-             </tr>
-          </thead>
-          <tbody>
-            ${feedbackData.slice(0, 50).map(f => `
-              <tr>
-                <td>${f.feedbackId || f.id}</td>
-                <td>${f.title}</td>
-                <td>${f.category}</td>
-                <td>${f.status}</td>
-                <td>${f.authorEmail}</td>
-                <td>${new Date(f.createdAt).toLocaleDateString()}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-        <p style="margin-top: 20px; color: #666;">* This is a preview. For full data, use CSV export.</p>
-      </body>
-      </html>
-    `;
-    
-    const blob = new Blob([reportHtml], { type: 'text/html' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${reportType}_report_${new Date().toISOString().split('T')[0]}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-    
-    alert('Report generated and downloaded as HTML! You can print it as PDF.');
   };
 
   const handleGenerateReport = () => {
     setLoading(true);
     try {
-      if (format === 'csv') {
-        generateCSV();
-      } else if (format === 'pdf') {
-        generatePDF();
-      }
+      generateCSV();
     } catch (error) {
       console.error('Error generating report:', error);
       alert('Failed to generate report: ' + error.message);
@@ -269,7 +177,7 @@ const Reports = () => {
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Generate Report</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
               <label className="block text-gray-700 mb-2 font-medium">Report Type</label>
               <select 
@@ -292,27 +200,17 @@ const Reports = () => {
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="csv">CSV (Excel Compatible)</option>
-                <option value="pdf">HTML Report (Printable)</option>
               </select>
             </div>
+          </div>
 
-            <div className="flex items-end">
-              <button
-                onClick={handleGenerateReport}
-                disabled={loading}
-                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-              >
-                {loading ? 'Generating...' : 'Generate & Download Report'}
-              </button>
-            </div>
-          </div>
-          
-          <div className="text-sm text-gray-500 mt-4 p-3 bg-gray-50 rounded-lg">
-            <strong>📊 Report Info:</strong> {reportType === 'feedback' && 'Generates a CSV with all feedback submissions including title, description, status, author, and votes.'}
-            {reportType === 'users' && 'User activity report - coming soon with user data.'}
-            {reportType === 'department' && 'Groups feedback by department to see which departments are most active.'}
-            {reportType === 'resolution' && 'Shows resolved feedback and resolution times.'}
-          </div>
+          <button
+            onClick={handleGenerateReport}
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {loading ? 'Generating...' : 'Generate & Download Report'}
+          </button>
         </div>
 
         {/* Recent Feedback Preview */}

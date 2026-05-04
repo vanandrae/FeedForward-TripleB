@@ -23,20 +23,27 @@ public class CommentEntity {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
+    @Column(name = "is_anonymous")
+    private boolean anonymous = false;
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
     
-    // Getters and Setters
+    // Getters
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
     public Long getFeedbackId() { return feedbackId; }
-    public void setFeedbackId(Long feedbackId) { this.feedbackId = feedbackId; }
     public String getAuthorEmail() { return authorEmail; }
-    public void setAuthorEmail(String authorEmail) { this.authorEmail = authorEmail; }
     public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public boolean isAnonymous() { return anonymous; }
+    
+    // Setters
+    public void setId(Long id) { this.id = id; }
+    public void setFeedbackId(Long feedbackId) { this.feedbackId = feedbackId; }
+    public void setAuthorEmail(String authorEmail) { this.authorEmail = authorEmail; }
+    public void setContent(String content) { this.content = content; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setAnonymous(boolean anonymous) { this.anonymous = anonymous; }
 }

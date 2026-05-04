@@ -5,27 +5,29 @@ import Navlink from './Navlink';
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const { logout, user, isAuthenticated, isAdmin, isStudent } = useAuth(); // Removed unused isFaculty
+  const { logout, user, isAuthenticated, isAdmin, isStudent } = useAuth();
 
   // Get menu items based on user role
   const getMenuItems = () => {
-    const items = [
-      { to: '/dashboard', icon: '📊', label: 'Dashboard' },
-    ];
+    const items = [];
+
+    if (isAdmin || isStudent) {
+      items.push({ to: '/dashboard', label: 'Dashboard' });
+    }
     
-    // Only students can submit feedback
-    if (isStudent) {
-      items.push({ to: '/submit-feedback', icon: '📝', label: 'Submit Feedback' });
+    // Only students & admins can submit feedback
+    if (isStudent || isAdmin) {
+      items.push({ to: '/submit-feedback', label: 'Submit Feedback' });
     }
     
     // All authenticated users can view feedback
-    items.push({ to: '/feedback', icon: '👁️', label: 'View Feedback' });
-    items.push({ to: '/profile', icon: '👤', label: 'Profile' });
+    items.push({ to: '/feedback', label: 'Feedbacks' });
+    items.push({ to: '/profile', label: 'Profile' });
     
     // Only admins see reports and analytics
     if (isAdmin) {
-      items.push({ to: '/admin/reports', icon: '📋', label: 'Admin Reports' });
-      items.push({ to: '/reports', icon: '📈', label: 'Analytics' });
+      items.push({ to: '/admin/reports', label: 'Reports' });
+      items.push({ to: '/reports', label: 'Analytics' });
     }
     
     return items;
@@ -50,17 +52,25 @@ const Sidebar = () => {
         <h1 className="text-white text-xl font-bold">FeedForward</h1>
       </div>
 
-      {/* User Info */}
+      {/* User Info with Profile Picture */}
       {user && (
         <div className="px-4 py-4 border-b border-white/20">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold">
-                {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.name?.charAt(0).toUpperCase() || 'U'}
-              </span>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-white/20">
+              {user.profilePicture ? (
+                <img 
+                  src={user.profilePicture} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-white font-bold">
+                  {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.name?.charAt(0).toUpperCase() || 'U'}
+                </span>
+              )}
             </div>
             <div className="flex-1">
-              <p className="text-white text-sm font-medium">{user.fullName || user.name || 'User'}</p>
+              <p className="text-white text-sm font-medium truncate">{user.fullName || user.name || 'User'}</p>
               <p className="text-white/70 text-xs capitalize">{user.role || 'Student'}</p>
             </div>
           </div>
@@ -70,7 +80,7 @@ const Sidebar = () => {
       {/* Navigation Menu */}
       <nav className="mt-4 px-3">
         {menuItems.map((item, index) => (
-          <Navlink key={index} to={item.to} icon={item.icon} label={item.label} />
+          <Navlink key={index} to={item.to} label={item.label} />
         ))}
       </nav>
 
@@ -80,7 +90,6 @@ const Sidebar = () => {
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors"
         >
-          <span className="text-xl">🚪</span>
           <span className="font-medium">Logout</span>
         </button>
       </div>

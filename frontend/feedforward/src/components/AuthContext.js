@@ -41,20 +41,35 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('========== LOGIN ATTEMPT ==========');
       console.log('Email:', email);
-      console.log('Password length:', password?.length);
-      console.log('API Endpoint:', API_ENDPOINTS.LOGIN);
       
       const response = await HttpService.post(API_ENDPOINTS.LOGIN, { email, password });
       
-      console.log('Login response status:', response);
-      console.log('Response token exists:', !!response.token);
+      console.log('Login response:', response);
       
       if (response.token) {
+        // Store token and basic user data first
         localStorage.setItem('authToken', response.token);
         localStorage.setItem('userData', JSON.stringify(response));
         setUser(response);
         setIsAuthenticated(true);
         setUserRole(response.role);
+        
+        // Try to fetch profile picture separately (don't let it break login)
+        try {
+          const profileResponse = await HttpService.get(API_ENDPOINTS.GET_USER_PROFILE);
+          const updatedUser = {
+            ...response,
+            profilePicture: profileResponse.profilePicture,
+            fullName: profileResponse.fullName || response.fullName,
+            department: profileResponse.department
+          };
+          localStorage.setItem('userData', JSON.stringify(updatedUser));
+          setUser(updatedUser);
+        } catch (profileError) {
+          console.log('Profile fetch failed, using basic user data:', profileError);
+          // Continue with basic user data
+        }
+        
         console.log('✅ Login successful!');
         return { success: true };
       } else {
@@ -63,9 +78,6 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('❌ Login error details:', error);
-      console.error('Error response data:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      console.error('Error headers:', error.response?.headers);
       return { success: false, message: error.response?.data?.message || error.message || 'Login failed' };
     }
   };
@@ -86,7 +98,7 @@ export const AuthProvider = ({ children }) => {
       console.log('Registration response:', response);
       
       if (response.message === "User registered successfully!") {
-        console.log('✅ Registration successful, auto-logging in...');
+        console.log('✅ Registration successful, logging in...');
         const loginResult = await login(userData.email, userData.password);
         return loginResult;
       }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import HttpService from '../services/HttpService';
@@ -15,7 +15,6 @@ const Dashboard = () => {
     resolved: 0
   });
   const [allFeedback, setAllFeedback] = useState([]);
-  const [filteredFeedback, setFilteredFeedback] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCommentBox, setShowCommentBox] = useState(null);
   const [commentText, setCommentText] = useState('');
@@ -26,19 +25,16 @@ const Dashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    fetchDashboardData();
-  }, []);
-
-  const applyFilters = useCallback(() => {
+  // Use useMemo to cache filtered results
+  const filteredFeedback = useMemo(() => {
     let filtered = [...allFeedback];
     
     if (searchTerm.trim() !== '') {
+      const term = searchTerm.toLowerCase();
       filtered = filtered.filter(item => 
-        item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.authorEmail?.toLowerCase().includes(searchTerm.toLowerCase())
+        item.title?.toLowerCase().includes(term) ||
+        item.description?.toLowerCase().includes(term) ||
+        item.authorEmail?.toLowerCase().includes(term)
       );
     }
     
@@ -54,15 +50,18 @@ const Dashboard = () => {
       );
     }
     
-    setFilteredFeedback(filtered);
+    return filtered;
   }, [allFeedback, searchTerm, statusFilter, categoryFilter]);
 
+  // Load data on mount only once
   useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    fetchDashboardData();
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
+      // Fetch stats and feedback in parallel
       const [statsResponse, feedbackResponse] = await Promise.all([
         HttpService.get(API_ENDPOINTS.GET_DASHBOARD_STATS),
         HttpService.get(API_ENDPOINTS.GET_ALL_FEEDBACK)
@@ -72,18 +71,23 @@ const Dashboard = () => {
       const feedbacks = feedbackResponse || [];
       setAllFeedback(feedbacks);
       
-      // Fetch upvote status in parallel
-      const upvotePromises = feedbacks.map(item => 
-        HttpService.get(`/feedback/${item.feedbackId || item.id}/has-upvoted`).catch(() => ({ hasUpvoted: false }))
-      );
-      
-      const upvoteResults = await Promise.all(upvotePromises);
-      const upvoteStatus = {};
-      feedbacks.forEach((item, index) => {
-        upvoteStatus[item.feedbackId || item.id] = upvoteResults[index]?.hasUpvoted || false;
-      });
-      
-      setUserUpvotes(upvoteStatus);
+      // Only fetch upvote status if there are feedbacks
+      if (feedbacks.length > 0) {
+        // Limit to first 20 for faster loading
+        const limitedFeedbacks = feedbacks.slice(0, 20);
+        const upvotePromises = limitedFeedbacks.map(item => 
+          HttpService.get(`/feedback/${item.feedbackId || item.id}/has-upvoted`)
+            .then(res => ({ id: item.feedbackId || item.id, hasUpvoted: res.hasUpvoted }))
+            .catch(() => ({ id: item.feedbackId || item.id, hasUpvoted: false }))
+        );
+        
+        const upvoteResults = await Promise.all(upvotePromises);
+        const upvoteStatus = {};
+        upvoteResults.forEach(result => {
+          upvoteStatus[result.id] = result.hasUpvoted;
+        });
+        setUserUpvotes(upvoteStatus);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -99,7 +103,9 @@ const Dashboard = () => {
       await HttpService.post(`/feedback/${feedbackId}/comments`, { comment: commentText });
       setCommentText('');
       setShowCommentBox(null);
-      await fetchDashboardData();
+      // Refresh only necessary data
+      const feedbackResponse = await HttpService.get(API_ENDPOINTS.GET_ALL_FEEDBACK);
+      setAllFeedback(feedbackResponse || []);
     } catch (error) {
       console.error('Error adding comment:', error);
       alert('Failed to add comment');
@@ -111,37 +117,55 @@ const Dashboard = () => {
   const handleToggleUpvote = async (feedbackId) => {
     if (upvoting === feedbackId) return;
     
+    // Optimistic update
     setUpvoting(feedbackId);
+    setUserUpvotes(prev => ({ ...prev, [feedbackId]: !prev[feedbackId] }));
+    setAllFeedback(prev => prev.map(item => 
+      (item.feedbackId || item.id) === feedbackId 
+        ? { ...item, votes: (item.votes || 0) + (prev[feedbackId] ? -1 : 1) }
+        : item
+    ));
+    
     try {
       const response = await HttpService.post(`/feedback/${feedbackId}/upvote`, {});
+      // Sync with server
       setUserUpvotes(prev => ({ ...prev, [feedbackId]: response.upvoted }));
       setAllFeedback(prev => prev.map(item => 
-        (item.feedbackId || item.id) === feedbackId ? { ...item, votes: response.votes } : item
+        (item.feedbackId || item.id) === feedbackId 
+          ? { ...item, votes: response.votes }
+          : item
       ));
     } catch (error) {
+      // Revert on error
+      setUserUpvotes(prev => ({ ...prev, [feedbackId]: !prev[feedbackId] }));
+      setAllFeedback(prev => prev.map(item => 
+        (item.feedbackId || item.id) === feedbackId 
+          ? { ...item, votes: (item.votes || 0) + (prev[feedbackId] ? 1 : -1) }
+          : item
+      ));
       console.error('Error toggling upvote:', error);
     } finally {
       setUpvoting(null);
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = useCallback((status) => {
     switch(status?.toLowerCase()) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'in_review': return 'bg-blue-100 text-blue-800';
       case 'resolved': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
-  };
+  }, []);
 
-  const getCategoryIcon = (category) => {
+  const getCategoryIcon = useCallback((category) => {
     switch(category?.toLowerCase()) {
       case 'bug': return '🐛';
       case 'feature': return '✨';
       case 'improvement': return '📈';
       default: return '💬';
     }
-  };
+  }, []);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -157,12 +181,15 @@ const Dashboard = () => {
     );
   }
 
+  // Only show first 20 items for better performance
+  const displayFeedback = filteredFeedback.slice(0, 20);
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-content">
         {/* Welcome Banner */}
         <div className="welcome-banner">
-          <h2 className="welcome-title">Welcome, {user?.fullName || 'User'}! 👋</h2>
+          <h2 className="welcome-title">Welcome, {user?.fullName || 'User'}!</h2>
           <p className="welcome-text">
             {isStudent ? "See what others are saying. Upvote and comment on feedback!" : "Track and manage all feedback submissions"}
           </p>
@@ -225,7 +252,7 @@ const Dashboard = () => {
           
           <input
             type="text"
-            placeholder="🔍 Search by title, description, or author email..."
+            placeholder="Search by title, description, or author email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 border rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -254,11 +281,11 @@ const Dashboard = () => {
             )}
           </div>
           
-          <p className="text-sm text-gray-500">Showing {filteredFeedback.length} of {allFeedback.length} feedback items</p>
+          <p className="text-sm text-gray-500">Showing {displayFeedback.length} of {allFeedback.length} feedback items</p>
         </div>
 
-        {/* Feedback Feed */}
-        {filteredFeedback.length === 0 ? (
+        {/* Feedback Feed - Limited to 20 items */}
+        {displayFeedback.length === 0 ? (
           <div className="empty-state">
             <div className="text-6xl mb-4">📭</div>
             <p className="text-gray-500 text-lg">No feedback found</p>
@@ -266,7 +293,7 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="space-y-4 px-6 pb-6">
-            {filteredFeedback.map((feedbackItem) => {
+            {displayFeedback.map((feedbackItem) => {
               const feedbackId = feedbackItem.feedbackId || feedbackItem.id;
               const hasUpvoted = userUpvotes[feedbackId];
               
@@ -278,7 +305,7 @@ const Dashboard = () => {
                       <div>
                         <h4 className="font-semibold text-gray-800">{feedbackItem.title}</h4>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-500">By: {feedbackItem.authorEmail || 'Anonymous'}</span>
+                          <span className="text-xs text-gray-500">By: {feedbackItem.authorName || 'Anonymous'}</span>
                           <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(feedbackItem.status)}`}>
                             {feedbackItem.status || 'PENDING'}
                           </span>

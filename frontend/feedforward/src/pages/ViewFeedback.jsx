@@ -12,6 +12,7 @@ const ViewFeedback = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchFeedback = useCallback(async () => {
     setLoading(true);
@@ -67,14 +68,42 @@ const ViewFeedback = () => {
     }
   };
 
-  // Apply filter
-  const filteredFeedback = filter === 'all' 
-    ? feedbackList 
-    : feedbackList.filter(f => {
+  // Get display name based on anonymous status
+  const getAuthorDisplay = (feedback) => {
+    if (feedback.anonymous) {
+      return 'Anonymous';
+    }
+    return feedback.authorName || feedback.authorEmail?.split('@')[0] || 'Anonymous';
+  };
+
+  // Apply search filter (Faculty only)
+  const filteredBySearch = (feedback) => {
+    if (!searchTerm.trim()) return true;
+    
+    const term = searchTerm.toLowerCase();
+    return (
+      feedback.title?.toLowerCase().includes(term) ||
+      feedback.description?.toLowerCase().includes(term) ||
+      feedback.authorName?.toLowerCase().includes(term) ||
+      feedback.category?.toLowerCase().includes(term)
+    );
+  };
+
+  // Apply status filter
+  const filteredFeedback = feedbackList
+    .filter(f => {
+      // Status filter
+      if (filter !== 'all') {
         const feedbackStatus = f.status?.toUpperCase();
         const filterStatus = filter.toUpperCase();
-        return feedbackStatus === filterStatus;
-      });
+        if (feedbackStatus !== filterStatus) return false;
+      }
+      // Search filter (Faculty/Admin only)
+      if (isFaculty || isAdmin) {
+        return filteredBySearch(f);
+      }
+      return true;
+    });
 
   if (loading) {
     return (
@@ -104,7 +133,7 @@ const ViewFeedback = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">
-          {isAdmin ? 'All Feedback (Admin View)' : isFaculty ? 'All Student Feedback (Faculty View)' : 'My Feedback'}
+          {isAdmin ? 'All Feedback (Admin View)' : isFaculty ? 'All Student Feedback (Faculty View)' : 'My Feedbacks'}
         </h1>
         
         {/* Stats Summary */}
@@ -132,6 +161,34 @@ const ViewFeedback = () => {
             <div className="text-xs text-gray-500">Resolved</div>
           </div>
         </div>
+
+        {/* Search Bar - Only for Faculty and Admin */}
+        {(isFaculty || isAdmin) && (
+          <div className="mb-6">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search feedback by title, description, author, or category..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <svg
+                className="absolute left-3 top-3.5 h-5 w-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            {searchTerm && (
+              <div className="mt-2 text-sm text-gray-500">
+                Found {filteredFeedback.length} result(s) for "{searchTerm}"
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
@@ -184,7 +241,7 @@ const ViewFeedback = () => {
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
             <div className="text-6xl mb-4">📭</div>
             <p className="text-gray-500 text-lg">No feedback submissions found</p>
-            <p className="text-gray-400 text-sm">Try changing the filter or check back later</p>
+            <p className="text-gray-400 text-sm">Try changing the filter or search term</p>
             {isStudent && (
               <button 
                 onClick={() => navigate('/submit-feedback')}
@@ -205,6 +262,11 @@ const ViewFeedback = () => {
                       <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(feedback.status)}`}>
                         {getStatusDisplay(feedback.status)}
                       </span>
+                      {feedback.anonymous && (
+                        <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-500">
+                          🤫 Anonymous
+                        </span>
+                      )}
                     </div>
                     <p className="text-gray-600 mt-1">{feedback.description}</p>
                     <div className="flex gap-2 mt-3 flex-wrap">
@@ -215,7 +277,7 @@ const ViewFeedback = () => {
                         ⚡ Priority: {feedback.priority || 'MEDIUM'}
                       </span>
                       <span className="text-xs text-gray-400">
-                        👤 By: {feedback.authorEmail || 'Anonymous'}
+                        👤 By: {getAuthorDisplay(feedback)}
                       </span>
                       <span className="text-xs text-gray-400">
                         📅 {new Date(feedback.createdAt).toLocaleDateString()}

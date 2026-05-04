@@ -2,6 +2,8 @@ package com.appdevg6.teambibit.entity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -30,12 +32,11 @@ public class UserEntity {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // Add to UserEntity.java
     @Column(name = "banned")
     private boolean banned = false;
-
-    public boolean isBanned() { return banned; }
-    public void setBanned(boolean banned) { this.banned = banned; }
+    
+    @Column(name = "profile_picture", length = 500)  // NEW FIELD
+    private String profilePicture;  // Store URL or base64 string
 
     public UserEntity() {}
 
@@ -60,6 +61,8 @@ public class UserEntity {
     public String getRole() { return role; }
     public String getDepartment() { return department; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public boolean isBanned() { return banned; }
+    public String getProfilePicture() { return profilePicture; }
 
     // Setters
     public void setUserId(Long userId) { this.userId = userId; }
@@ -69,4 +72,6 @@ public class UserEntity {
     public void setRole(String role) { this.role = role; }
     public void setDepartment(String department) { this.department = department; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setBanned(boolean banned) { this.banned = banned; }
+    public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
 }

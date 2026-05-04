@@ -36,6 +36,9 @@ public class FeedbackEntity {
     @Column(name = "author_email")
     private String authorEmail;
     
+    @Column(name = "is_anonymous")
+    private boolean anonymous = false;  // NEW FIELD
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -89,6 +92,9 @@ public class FeedbackEntity {
     
     public String getAuthorEmail() { return authorEmail; }
     public void setAuthorEmail(String authorEmail) { this.authorEmail = authorEmail; }
+    
+    public boolean isAnonymous() { return anonymous; }
+    public void setAnonymous(boolean anonymous) { this.anonymous = anonymous; }
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

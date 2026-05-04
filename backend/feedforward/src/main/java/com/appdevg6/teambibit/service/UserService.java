@@ -29,6 +29,8 @@ public class UserService {
             userMap.put("email", user.getEmail());
             userMap.put("role", user.getRole());
             userMap.put("department", user.getDepartment());
+            userMap.put("profilePicture", user.getProfilePicture());
+            userMap.put("banned", user.isBanned());
             userList.add(userMap);
         }
         return userList;
@@ -49,7 +51,7 @@ public class UserService {
         return response;
     }
     
-    // Get profile by email
+    // Get profile by email - INCLUDES profile picture
     public Map<String, Object> getProfileByEmail(String email) {
         UserEntity user = userRepository.findByEmail(email)
             .orElseThrow(() -> new NoSuchElementException("User not found"));
@@ -61,11 +63,13 @@ public class UserService {
         profile.put("role", user.getRole());
         profile.put("department", user.getDepartment());
         profile.put("createdAt", user.getCreatedAt());
+        profile.put("profilePicture", user.getProfilePicture()); // Added
+        profile.put("banned", user.isBanned());
         
         return profile;
     }
     
-    // Update profile by email
+    // Update profile by email - INCLUDES profile picture update
     public Map<String, Object> updateProfileByEmail(String email, Map<String, String> payload) {
         UserEntity user = userRepository.findByEmail(email)
             .orElseThrow(() -> new NoSuchElementException("User not found"));
@@ -79,6 +83,9 @@ public class UserService {
         if (payload.containsKey("password")) {
             user.setPassword(passwordEncoder.encode(payload.get("password")));
         }
+        if (payload.containsKey("profilePicture")) {
+            user.setProfilePicture(payload.get("profilePicture"));
+        }
         
         userRepository.save(user);
         
@@ -88,6 +95,8 @@ public class UserService {
         response.put("fullName", user.getFullName());
         response.put("email", user.getEmail());
         response.put("department", user.getDepartment());
+        response.put("profilePicture", user.getProfilePicture()); // Added
+        response.put("role", user.getRole());
         
         return response;
     }
@@ -104,11 +113,46 @@ public class UserService {
         return userRepository.save(user);
     }
     
+    // Ban or unban user
+    public Map<String, Object> toggleBanUser(Long id, boolean banned) {
+        UserEntity user = userRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("User " + id + " not found"));
+        
+        user.setBanned(banned);
+        userRepository.save(user);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", banned ? "User banned successfully" : "User unbanned successfully");
+        response.put("userId", user.getUserId());
+        response.put("banned", user.isBanned());
+        return response;
+    }
+    
+    // Delete user
+    public Map<String, Object> deleteUser(Long id) {
+        UserEntity user = userRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("User " + id + " not found"));
+        
+        userRepository.deleteById(id);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "User deleted successfully");
+        response.put("userId", id);
+        return response;
+    }
+    
+    // Check if email exists
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
     
+    // Get user by email
     public Optional<UserEntity> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+    
+    // Get user by ID
+    public Optional<UserEntity> getUserById(Long id) {
+        return userRepository.findById(id);
     }
 }

@@ -4,28 +4,37 @@ import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import HttpService from '../services/HttpService';
 import { API_ENDPOINTS } from '../services/ApiConstants';
+import ProfilePictureUpload from '../components/ProfilePictureUpload';
 
 const Profile = () => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, isFaculty } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showPictureUpload, setShowPictureUpload] = useState(false);
   const [profile, setProfile] = useState({
     userId: '',
     fullName: '',
     email: '',
     role: '',
     department: '',
-    createdAt: ''
+    createdAt: '',
+    profilePicture: ''
   });
   const [formData, setFormData] = useState({
     fullName: '',
     department: '',
     newPassword: '',
     confirmPassword: ''
+  });
+  const [feedbackStats, setFeedbackStats] = useState({
+    total: 0,
+    resolved: 0,
+    pending: 0,
+    inReview: 0
   });
 
   useEffect(() => {
@@ -34,6 +43,7 @@ const Profile = () => {
       return;
     }
     fetchProfile();
+    fetchFeedbackStats();
   }, [isAuthenticated, navigate]);
 
   const fetchProfile = async () => {
@@ -43,14 +53,14 @@ const Profile = () => {
       const response = await HttpService.get(API_ENDPOINTS.GET_USER_PROFILE);
       console.log('Profile response:', response);
       
-      // Handle both possible response formats
       setProfile({
         userId: response.userId || response.id || '',
         fullName: response.fullName || response.name || '',
         email: response.email || '',
         role: response.role || 'student',
         department: response.department || '',
-        createdAt: response.createdAt || response.created_at || ''
+        createdAt: response.createdAt || response.created_at || '',
+        profilePicture: response.profilePicture || ''
       });
       
       setFormData({
@@ -67,6 +77,37 @@ const Profile = () => {
     }
   };
 
+  const fetchFeedbackStats = async () => {
+    try {
+      const response = await HttpService.get(API_ENDPOINTS.GET_USER_FEEDBACK);
+      const feedbacks = response || [];
+      
+      const stats = {
+        total: feedbacks.length,
+        resolved: feedbacks.filter(f => f.status?.toUpperCase() === 'RESOLVED').length,
+        pending: feedbacks.filter(f => f.status?.toUpperCase() === 'PENDING').length,
+        inReview: feedbacks.filter(f => f.status?.toUpperCase() === 'IN_REVIEW').length
+      };
+      
+      setFeedbackStats(stats);
+    } catch (error) {
+      console.error('Error fetching feedback stats:', error);
+    }
+  };
+
+  const handleProfilePictureUpload = async (imageData) => {
+    try {
+      await HttpService.put('/user/profile-picture', { profilePicture: imageData });
+      setProfile(prev => ({ ...prev, profilePicture: imageData }));
+      setShowPictureUpload(false);
+      setSuccess('Profile picture updated successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      setError('Failed to update profile picture');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
   const handleUpdateProfile = async () => {
     setError('');
     setSuccess('');
@@ -78,7 +119,6 @@ const Profile = () => {
         department: formData.department
       };
 
-      // Only include password if user wants to change it
       if (formData.newPassword) {
         if (formData.newPassword.length < 6) {
           setError('Password must be at least 6 characters');
@@ -95,7 +135,6 @@ const Profile = () => {
 
       await HttpService.put(API_ENDPOINTS.UPDATE_USER_PROFILE, updateData);
       
-      // Update local user data
       const updatedUser = { 
         ...user, 
         fullName: formData.fullName, 
@@ -105,11 +144,8 @@ const Profile = () => {
       
       setSuccess('Profile updated successfully!');
       setEditing(false);
-      
-      // Refresh profile data
       await fetchProfile();
       
-      // Clear password fields
       setFormData(prev => ({
         ...prev,
         newPassword: '',
@@ -190,8 +226,22 @@ const Profile = () => {
           {/* Header with Gradient */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
             <div className="flex items-center gap-4">
-              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-4xl font-bold backdrop-blur-sm">
-                {profile.fullName ? profile.fullName.charAt(0).toUpperCase() : 'U'}
+              {/* Profile Picture with Upload Button */}
+              <div className="relative">
+                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-4xl font-bold backdrop-blur-sm overflow-hidden">
+                  {profile.profilePicture ? (
+                    <img src={profile.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    profile.fullName ? profile.fullName.charAt(0).toUpperCase() : 'U'
+                  )}
+                </div>
+                <button
+                  onClick={() => setShowPictureUpload(true)}
+                  className="absolute -bottom-2 -right-2 bg-blue-600 text-white rounded-full p-1.5 shadow-lg hover:bg-blue-700 transition text-xs"
+                  title="Change profile picture"
+                >
+                  📷
+                </button>
               </div>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold">{profile.fullName || 'User'}</h1>
@@ -265,13 +315,13 @@ const Profile = () => {
                     onClick={() => setEditing(true)}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
                   >
-                    ✏️ Edit Profile
+                    Edit Profile
                   </button>
                   <button
                     onClick={handleLogout}
                     className="px-4 py-2 border border-red-600 text-red-600 rounded-lg hover:bg-red-50 transition flex items-center gap-2"
                   >
-                    🚪 Logout
+                    Logout
                   </button>
                 </div>
               </div>
@@ -350,31 +400,42 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Statistics Section */}
-        <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            📊 Account Statistics
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-3xl font-bold text-blue-600">-</div>
-              <div className="text-sm text-gray-600 mt-1">Total Feedback</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-3xl font-bold text-green-600">-</div>
-              <div className="text-sm text-gray-600 mt-1">Resolved</div>
-            </div>
-            <div className="text-center p-4 bg-yellow-50 rounded-lg">
-              <div className="text-3xl font-bold text-yellow-600">-</div>
-              <div className="text-sm text-gray-600 mt-1">Pending</div>
-            </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-3xl font-bold text-purple-600">-</div>
-              <div className="text-sm text-gray-600 mt-1">In Review</div>
+        {/* Statistics Section - Only show for students and admins (not faculty) */}
+        {!isFaculty && (
+          <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              Account Statistics
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg hover:shadow-md transition">
+                <div className="text-3xl font-bold text-blue-600">{feedbackStats.total}</div>
+                <div className="text-sm text-gray-600 mt-1">Total Feedback</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg hover:shadow-md transition">
+                <div className="text-3xl font-bold text-green-600">{feedbackStats.resolved}</div>
+                <div className="text-sm text-gray-600 mt-1">Resolved</div>
+              </div>
+              <div className="text-center p-4 bg-yellow-50 rounded-lg hover:shadow-md transition">
+                <div className="text-3xl font-bold text-yellow-600">{feedbackStats.pending}</div>
+                <div className="text-sm text-gray-600 mt-1">Pending</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg hover:shadow-md transition">
+                <div className="text-3xl font-bold text-purple-600">{feedbackStats.inReview}</div>
+                <div className="text-sm text-gray-600 mt-1">In Review</div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Profile Picture Upload Modal */}
+      {showPictureUpload && (
+        <ProfilePictureUpload
+          currentImage={profile.profilePicture}
+          onImageUpload={handleProfilePictureUpload}
+          onClose={() => setShowPictureUpload(false)}
+        />
+      )}
     </div>
   );
 };

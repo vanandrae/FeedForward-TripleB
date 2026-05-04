@@ -14,7 +14,6 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 
 // Main layout component (only rendered when authenticated)
-// Main layout component (only rendered when authenticated)
 const MainLayout = ({ children }) => {
   return (
     <div className="flex min-h-screen">
@@ -31,7 +30,7 @@ const MainLayout = ({ children }) => {
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, isFaculty } = useAuth();
   
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -39,6 +38,11 @@ const ProtectedRoute = ({ children }) => {
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+  
+  // Redirect faculty from dashboard to feedback page
+  if (isFaculty && window.location.pathname === '/dashboard') {
+    return <Navigate to="/feedback" replace />;
   }
   
   return <MainLayout>{children}</MainLayout>;
@@ -63,7 +67,7 @@ const AdminRoute = ({ children }) => {
   return <MainLayout>{children}</MainLayout>;
 };
 
-// Public Route wrapper
+// Public Route wrapper - Redirects to dashboard if already authenticated
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   
@@ -71,6 +75,7 @@ const PublicRoute = ({ children }) => {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
   
+  // If already logged in, redirect to dashboard
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -82,7 +87,7 @@ const PublicRoute = ({ children }) => {
 const AppContent = () => {
   return (
     <Routes>
-      {/* Public Routes */}
+      {/* Public Routes - Redirect to dashboard if already logged in */}
       <Route path="/login" element={
         <PublicRoute>
           <Login />
@@ -94,7 +99,7 @@ const AppContent = () => {
         </PublicRoute>
       } />
       
-      {/* Protected Routes - All authenticated users */}
+      {/* Protected Routes - Only accessible when authenticated */}
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
@@ -133,8 +138,9 @@ const AppContent = () => {
         </AdminRoute>
       } />
       
-      {/* Default redirect */}
+      {/* Default redirect - goes to login */}
       <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 };
