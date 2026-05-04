@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
-import RoleToggle from './RoleToggle';
 import { validateEmail, validatePassword, validateName } from './Validation';
 import './AuthStyles.css';
 
@@ -9,8 +8,7 @@ const RegisterForm = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    role: 'student'
+    confirmPassword: ''
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -23,10 +21,6 @@ const RegisterForm = () => {
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
-  };
-
-  const handleRoleChange = (role) => {
-    setFormData(prev => ({ ...prev, role }));
   };
 
   const validateForm = () => {
@@ -62,7 +56,7 @@ const RegisterForm = () => {
       name: formData.name,
       email: formData.email,
       password: formData.password,
-      role: formData.role
+      role: 'student' // Fixed role - always student
     });
     setLoading(false);
     
@@ -105,11 +99,6 @@ const RegisterForm = () => {
           required
         />
         {errors.email && <span className="form-error">{errors.email}</span>}
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">Role</label>
-        <RoleToggle selectedRole={formData.role} onRoleChange={handleRoleChange} />
       </div>
 
       <div className="form-group">

@@ -26,7 +26,6 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserEntity>> getAllUsers() {
         List<UserEntity> users = userRepository.findAll();
-        System.out.println("Fetching users, found: " + users.size());
         return ResponseEntity.ok(users);
     }
 
@@ -64,7 +63,7 @@ public class AdminController {
             notification.setUserEmail(user.get().getEmail());
             notification.setTitle(isBanned ? "Account Banned" : "Account Unbanned");
             notification.setMessage(isBanned ? 
-                "Your account has been banned by an administrator." :
+                "Your account has been banned by an administrator. You can no longer log in. Contact support for more information." :
                 "Your account has been unbanned. You can now log in again.");
             notification.setType("account_status");
             notification.setCreatedAt(LocalDateTime.now());

@@ -27,9 +27,20 @@ export const AuthProvider = ({ children }) => {
     if (token && userData) {
       try {
         const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-        setUserRole(parsedUser.role);
+        // Check if user is banned from the stored data
+        if (parsedUser.banned) {
+          // If banned, clear storage and redirect to login
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('userData');
+          setUser(null);
+          setIsAuthenticated(false);
+          setUserRole(null);
+          window.location.href = '/login';
+        } else {
+          setUser(parsedUser);
+          setIsAuthenticated(true);
+          setUserRole(parsedUser.role);
+        }
       } catch (e) {
         console.error('Error parsing user data:', e);
       }
@@ -47,6 +58,12 @@ export const AuthProvider = ({ children }) => {
       console.log('Login response:', response);
       
       if (response.token) {
+        // Check if user is banned from response
+        if (response.banned) {
+          console.error('❌ Account is banned');
+          return { success: false, message: 'Your account has been banned. Please contact an administrator.' };
+        }
+        
         // Store token and basic user data first
         localStorage.setItem('authToken', response.token);
         localStorage.setItem('userData', JSON.stringify(response));
@@ -61,7 +78,8 @@ export const AuthProvider = ({ children }) => {
             ...response,
             profilePicture: profileResponse.profilePicture,
             fullName: profileResponse.fullName || response.fullName,
-            department: profileResponse.department
+            department: profileResponse.department,
+            banned: profileResponse.banned || false
           };
           localStorage.setItem('userData', JSON.stringify(updatedUser));
           setUser(updatedUser);
@@ -78,6 +96,13 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('❌ Login error details:', error);
+      
+      // Check if error is due to banned account (403)
+      if (error.response?.status === 403) {
+        const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Your account has been banned. Please contact an administrator.';
+        return { success: false, message: errorMessage };
+      }
+      
       return { success: false, message: error.response?.data?.message || error.message || 'Login failed' };
     }
   };
@@ -87,12 +112,13 @@ export const AuthProvider = ({ children }) => {
       console.log('========== REGISTRATION ATTEMPT ==========');
       console.log('Email:', userData.email);
       
+      // Force role to 'student' regardless of what is passed
       const response = await HttpService.post(API_ENDPOINTS.REGISTER, {
         name: userData.name,
         email: userData.email,
         password: userData.password,
-        role: userData.role,
-        department: userData.department
+        role: 'student',  // Force student role
+        department: userData.department || ''
       });
       
       console.log('Registration response:', response);

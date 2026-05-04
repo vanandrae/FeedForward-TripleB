@@ -8,6 +8,7 @@ public class AuthResponse {
     private String email;
     private String role;
     private String department;
+    private boolean banned;
 
     public AuthResponse() {}
 
@@ -17,6 +18,7 @@ public class AuthResponse {
         this.fullName = fullName;
         this.email = email;
         this.role = role;
+        this.banned = false;
     }
 
     // Getters
@@ -27,6 +29,7 @@ public class AuthResponse {
     public String getEmail() { return email; }
     public String getRole() { return role; }
     public String getDepartment() { return department; }
+    public boolean isBanned() { return banned; }
 
     // Setters
     public void setToken(String token) { this.token = token; }
@@ -36,4 +39,5 @@ public class AuthResponse {
     public void setEmail(String email) { this.email = email; }
     public void setRole(String role) { this.role = role; }
     public void setDepartment(String department) { this.department = department; }
+    public void setBanned(boolean banned) { this.banned = banned; }
 }
