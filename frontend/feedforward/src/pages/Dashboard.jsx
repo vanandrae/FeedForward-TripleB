@@ -222,7 +222,7 @@ const Dashboard = () => {
       <div className="dashboard-content">
         {/* Welcome Banner */}
         <div className="welcome-banner">
-          <h2 className="welcome-title">Welcome, {user?.fullName || 'User'}! 👋</h2>
+          <h2 className="welcome-title">Welcome, {user?.fullName || 'User'}!</h2>
           <p className="welcome-text">
             {isStudent ? "See what others are saying. Upvote and comment on feedback!" : "Track and manage all feedback submissions"}
           </p>
