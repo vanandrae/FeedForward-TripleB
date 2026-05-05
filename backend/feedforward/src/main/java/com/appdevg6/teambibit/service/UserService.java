@@ -69,37 +69,42 @@ public class UserService {
         return profile;
     }
     
-    // Update profile by email - INCLUDES profile picture update
-    public Map<String, Object> updateProfileByEmail(String email, Map<String, String> payload) {
-        UserEntity user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new NoSuchElementException("User not found"));
-        
-        if (payload.containsKey("fullName")) {
-            user.setFullName(payload.get("fullName"));
-        }
-        if (payload.containsKey("department")) {
-            user.setDepartment(payload.get("department"));
-        }
-        if (payload.containsKey("password")) {
-            user.setPassword(passwordEncoder.encode(payload.get("password")));
-        }
-        if (payload.containsKey("profilePicture")) {
-            user.setProfilePicture(payload.get("profilePicture"));
-        }
-        
-        userRepository.save(user);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Profile updated successfully");
-        response.put("userId", user.getUserId());
-        response.put("fullName", user.getFullName());
-        response.put("email", user.getEmail());
-        response.put("department", user.getDepartment());
-        response.put("profilePicture", user.getProfilePicture()); // Added
-        response.put("role", user.getRole());
-        
-        return response;
+public Map<String, Object> updateProfileByEmail(String email, Map<String, String> payload) {
+    UserEntity user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new NoSuchElementException("User not found"));
+    
+    if (payload.containsKey("fullName")) {
+        user.setFullName(payload.get("fullName"));
     }
+    if (payload.containsKey("department")) {
+        user.setDepartment(payload.get("department"));
+    }
+    
+    if (payload.containsKey("newPassword") && !payload.get("newPassword").isEmpty()) {
+        String currentPassword = payload.get("currentPassword");
+        String newPassword = payload.get("newPassword");
+        
+        // Verify current password
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Current password is incorrect");
+            return errorResponse;
+        }
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+    }
+    
+    userRepository.save(user);
+    
+    Map<String, Object> response = new HashMap<>();
+    response.put("message", "Profile updated successfully");
+    response.put("userId", user.getUserId());
+    response.put("fullName", user.getFullName());
+    response.put("email", user.getEmail());
+    response.put("department", user.getDepartment());
+    
+    return response;
+}
     
     // Register new user
     public UserEntity registerUser(String fullName, String email, String password, String role, String department) {

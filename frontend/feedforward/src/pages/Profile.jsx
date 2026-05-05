@@ -24,6 +24,7 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     fullName: '',
     department: '',
+    currentPassword: '',  // Add current password field
     newPassword: '',
     confirmPassword: ''
   });
@@ -62,6 +63,7 @@ const Profile = () => {
       setFormData({
         fullName: response.fullName || response.name || '',
         department: response.department || '',
+        currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
@@ -75,7 +77,6 @@ const Profile = () => {
 
   const fetchFeedbackStats = async () => {
     try {
-      // Fetch user's feedback to calculate stats
       const response = await HttpService.get(API_ENDPOINTS.GET_USER_FEEDBACK);
       const feedbacks = response || [];
       
@@ -103,21 +104,39 @@ const Profile = () => {
         department: formData.department
       };
 
+      // Check if user wants to change password
       if (formData.newPassword) {
-        if (formData.newPassword.length < 6) {
-          setError('Password must be at least 6 characters');
+        // Validate current password is provided
+        if (!formData.currentPassword) {
+          setError('Please enter your current password to change password');
           setLoading(false);
           return;
         }
+        
+        if (formData.newPassword.length < 6) {
+          setError('New password must be at least 6 characters');
+          setLoading(false);
+          return;
+        }
+        
         if (formData.newPassword !== formData.confirmPassword) {
           setError('New passwords do not match');
           setLoading(false);
           return;
         }
-        updateData.password = formData.newPassword;
+        
+        // Add current password and new password to update data
+        updateData.currentPassword = formData.currentPassword;
+        updateData.newPassword = formData.newPassword;
       }
 
-      await HttpService.put(API_ENDPOINTS.UPDATE_USER_PROFILE, updateData);
+      const response = await HttpService.put(API_ENDPOINTS.UPDATE_USER_PROFILE, updateData);
+      
+      if (response.error) {
+        setError(response.error);
+        setLoading(false);
+        return;
+      }
       
       const updatedUser = { 
         ...user, 
@@ -132,13 +151,14 @@ const Profile = () => {
       
       setFormData(prev => ({
         ...prev,
+        currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       }));
       
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
-      setError(error.message || 'Failed to update profile');
+      setError(error.response?.data?.message || error.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
@@ -149,6 +169,7 @@ const Profile = () => {
     setFormData({
       fullName: profile.fullName || '',
       department: profile.department || '',
+      currentPassword: '',
       newPassword: '',
       confirmPassword: ''
     });
@@ -322,10 +343,20 @@ const Profile = () => {
 
                 <div className="border-t pt-4 mt-4">
                   <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    🔒 Change Password (Optional)
+                    🔒 Change Password
                   </h3>
                   
                   <div className="space-y-3">
+                    <div>
+                      <label className="block text-gray-700 text-sm mb-1">Current Password</label>
+                      <input
+                        type="password"
+                        value={formData.currentPassword}
+                        onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter your current password"
+                      />
+                    </div>
                     <div>
                       <label className="block text-gray-700 text-sm mb-1">New Password</label>
                       <input
@@ -333,9 +364,8 @@ const Profile = () => {
                         value={formData.newPassword}
                         onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Leave blank to keep current password"
+                        placeholder="Enter new password (min. 6 characters)"
                       />
-                      <p className="text-xs text-gray-400 mt-1">Minimum 6 characters</p>
                     </div>
                     <div>
                       <label className="block text-gray-700 text-sm mb-1">Confirm New Password</label>
@@ -348,6 +378,7 @@ const Profile = () => {
                       />
                     </div>
                   </div>
+                  <p className="text-xs text-gray-400 mt-2">Leave password fields empty to keep current password</p>
                 </div>
 
                 <div className="flex gap-3 pt-4">
