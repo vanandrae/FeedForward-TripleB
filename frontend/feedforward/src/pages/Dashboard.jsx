@@ -31,6 +31,66 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
+  // Optimized: Single function to fetch all data in parallel
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch stats and feedback in parallel
+      const [statsResponse, feedbackResponse] = await Promise.all([
+        HttpService.get(API_ENDPOINTS.GET_DASHBOARD_STATS),
+        HttpService.get(API_ENDPOINTS.GET_ALL_FEEDBACK)
+      ]);
+      
+      setStats(statsResponse);
+      const feedbacks = feedbackResponse || [];
+      
+      // Sort by votes
+      const sortedFeedbacks = [...feedbacks].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+      setAllFeedback(sortedFeedbacks);
+      
+      // Fetch all additional data in ONE batch using Promise.all
+      const feedbacksToProcess = sortedFeedbacks.slice(0, 20);
+      
+      const [upvoteResults, commentResults] = await Promise.all([
+        // Batch upvote status checks
+        Promise.all(
+          feedbacksToProcess.map(item => 
+            HttpService.get(`/feedback/${item.feedbackId || item.id}/has-upvoted`)
+              .then(res => ({ id: item.feedbackId || item.id, hasUpvoted: res.hasUpvoted }))
+              .catch(() => ({ id: item.feedbackId || item.id, hasUpvoted: false }))
+          )
+        ),
+        // Batch comment count checks
+        Promise.all(
+          feedbacksToProcess.map(item =>
+            HttpService.get(`/feedback/${item.feedbackId || item.id}/comments`)
+              .then(res => ({ id: item.feedbackId || item.id, count: res?.length || 0 }))
+              .catch(() => ({ id: item.feedbackId || item.id, count: 0 }))
+          )
+        )
+      ]);
+      
+      // Process upvote results
+      const upvoteStatus = {};
+      upvoteResults.forEach(result => {
+        upvoteStatus[result.id] = result.hasUpvoted;
+      });
+      setUserUpvotes(upvoteStatus);
+      
+      // Process comment counts
+      const commentCountMap = {};
+      commentResults.forEach(result => {
+        commentCountMap[result.id] = result.count;
+      });
+      setCommentCounts(commentCountMap);
+      
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Rest of your component remains the same...
   const applyFilters = useCallback(() => {
     let filtered = [...allFeedback];
     
@@ -55,70 +115,10 @@ const Dashboard = () => {
       );
     }
     
-    // Sort by votes/upvotes from highest to lowest
     return filtered.sort((a, b) => (b.votes || 0) - (a.votes || 0));
   }, [allFeedback, searchTerm, statusFilter, categoryFilter]);
 
   const filteredFeedback = useMemo(() => applyFilters(), [applyFilters]);
-
-  const fetchCommentCounts = async (feedbacks) => {
-    try {
-      const counts = {};
-      await Promise.all(
-        feedbacks.map(async (feedback) => {
-          const id = feedback.feedbackId || feedback.id;
-          try {
-            const response = await HttpService.get(`/feedback/${id}/comments`);
-            counts[id] = response?.length || 0;
-          } catch (error) {
-            counts[id] = 0;
-          }
-        })
-      );
-      setCommentCounts(counts);
-    } catch (error) {
-      console.error('Error fetching comment counts:', error);
-    }
-  };
-
-  const fetchDashboardData = async () => {
-    try {
-      const [statsResponse, feedbackResponse] = await Promise.all([
-        HttpService.get(API_ENDPOINTS.GET_DASHBOARD_STATS),
-        HttpService.get(API_ENDPOINTS.GET_ALL_FEEDBACK)
-      ]);
-      
-      setStats(statsResponse);
-      const feedbacks = feedbackResponse || [];
-      
-      // Sort feedback by votes initially
-      const sortedFeedbacks = [...feedbacks].sort((a, b) => (b.votes || 0) - (a.votes || 0));
-      setAllFeedback(sortedFeedbacks);
-      
-      // Fetch comment counts for all feedback
-      await fetchCommentCounts(sortedFeedbacks);
-      
-      if (sortedFeedbacks.length > 0) {
-        const limitedFeedbacks = sortedFeedbacks.slice(0, 20);
-        const upvotePromises = limitedFeedbacks.map(item => 
-          HttpService.get(`/feedback/${item.feedbackId || item.id}/has-upvoted`)
-            .then(res => ({ id: item.feedbackId || item.id, hasUpvoted: res.hasUpvoted }))
-            .catch(() => ({ id: item.feedbackId || item.id, hasUpvoted: false }))
-        );
-        
-        const upvoteResults = await Promise.all(upvotePromises);
-        const upvoteStatus = {};
-        upvoteResults.forEach(result => {
-          upvoteStatus[result.id] = result.hasUpvoted;
-        });
-        setUserUpvotes(upvoteStatus);
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAddComment = async (feedbackId) => {
     if (!commentText.trim() || submitting) return;
@@ -129,12 +129,10 @@ const Dashboard = () => {
       setCommentText('');
       setShowCommentBox(null);
       
-      // Refresh comment count for this feedback
+      // Only refresh the comment count for this specific feedback
       const response = await HttpService.get(`/feedback/${feedbackId}/comments`);
       setCommentCounts(prev => ({ ...prev, [feedbackId]: response?.length || 0 }));
       
-      // Refresh feedback data to update vote counts if needed
-      await fetchDashboardData();
     } catch (error) {
       console.error('Error adding comment:', error);
       alert('Failed to add comment');
@@ -210,7 +208,10 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -222,7 +223,7 @@ const Dashboard = () => {
       <div className="dashboard-content">
         {/* Welcome Banner */}
         <div className="welcome-banner">
-          <h2 className="welcome-title">Welcome, {user?.fullName || 'User'}!</h2>
+          <h2 className="welcome-title">Welcome, {user?.fullName || 'User'}! 👋</h2>
           <p className="welcome-text">
             {isStudent ? "See what others are saying. Upvote and comment on feedback!" : "Track and manage all feedback submissions"}
           </p>
@@ -339,7 +340,7 @@ const Dashboard = () => {
                       <div>
                         <h4 className="font-semibold text-gray-800">{feedbackItem.title}</h4>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-500">By: {feedbackItem.authorEmail?.split('@')[0] || 'Anonymous'}</span>
+                          <span className="text-xs text-gray-500">By: {feedbackItem.authorName || feedbackItem.authorEmail?.split('@')[0] || 'Anonymous'}</span>
                           <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(feedbackItem.status)}`}>
                             {feedbackItem.status || 'PENDING'}
                           </span>
