@@ -22,19 +22,17 @@ const ViewFeedback = () => {
       
       // Admin and Faculty can see ALL feedback
       if (isAdmin || isFaculty) {
-        console.log('Fetching all feedback for Admin/Faculty');
         response = await HttpService.get(API_ENDPOINTS.GET_ALL_FEEDBACK);
-        console.log('All feedback response:', response);
       } else {
         // Students see only their own feedback
-        console.log('Fetching user feedback for Student');
         response = await HttpService.get(API_ENDPOINTS.GET_USER_FEEDBACK);
-        console.log('User feedback response:', response);
       }
       
-      // Ensure we have an array
+      // OPTIMIZATION: Ensure we have an array and set loading to false immediately
       const feedbackArray = Array.isArray(response) ? response : [];
       setFeedbackList(feedbackArray);
+      setLoading(false);
+      
     } catch (error) {
       console.error('Error fetching feedback:', error);
       setError('Failed to load feedback. Please refresh the page.');

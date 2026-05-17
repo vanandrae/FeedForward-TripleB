@@ -1,17 +1,19 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './AuthContext';
-import Dashboard from '../pages/Dashboard';
-import SubmitFeedback from '../pages/SubmitFeedback';
-import ViewFeedback from '../pages/ViewFeedback';
-import FeedbackDetails from '../pages/FeedbackDetails';
-import Profile from '../pages/Profile';
-import Reports from '../pages/Reports';
-import AdminReports from '../pages/AdminReports';
 import Login from './Login';
 import Register from './Register';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
+
+// Lazy load pages to decrease initial bundle size and optimize loading
+const Dashboard = lazy(() => import('../pages/Dashboard'));
+const SubmitFeedback = lazy(() => import('../pages/SubmitFeedback'));
+const ViewFeedback = lazy(() => import('../pages/ViewFeedback'));
+const FeedbackDetails = lazy(() => import('../pages/FeedbackDetails'));
+const Profile = lazy(() => import('../pages/Profile'));
+const Reports = lazy(() => import('../pages/Reports'));
+const AdminReports = lazy(() => import('../pages/AdminReports'));
 
 // Main layout component with Sidebar and Navbar
 const MainLayout = ({ children }) => {
@@ -118,13 +120,21 @@ const PublicRoute = ({ children }) => {
 // Main App Content with routes
 const AppContent = () => {
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/login" element={
-        <PublicRoute>
-          <Login />
-        </PublicRoute>
-      } />
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-xl mb-2 text-gray-600">Loading Page...</div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        </div>
+      </div>
+    }>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/login" element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        } />
       <Route path="/register" element={
         <PublicRoute>
           <Register />
@@ -178,6 +188,7 @@ const AppContent = () => {
       {/* Catch all */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
+    </Suspense>
   );
 };
 

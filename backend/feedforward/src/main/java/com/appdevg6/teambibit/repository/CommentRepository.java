@@ -8,6 +8,9 @@ import java.util.List;
 @Repository
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
     List<CommentEntity> findByFeedbackIdOrderByCreatedAtDesc(Long feedbackId);
-
+    
     int countByFeedbackId(Long feedbackId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT c.feedbackId, COUNT(c) FROM CommentEntity c GROUP BY c.feedbackId")
+    List<Object[]> countCommentsByFeedbackId();
 }

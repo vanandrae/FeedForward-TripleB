@@ -47,40 +47,17 @@ const Dashboard = () => {
       const sortedFeedbacks = [...feedbacks].sort((a, b) => (b.votes || 0) - (a.votes || 0));
       setAllFeedback(sortedFeedbacks);
       
-      // Fetch all additional data in ONE batch using Promise.all
-      const feedbacksToProcess = sortedFeedbacks.slice(0, 20);
-      
-      const [upvoteResults, commentResults] = await Promise.all([
-        // Batch upvote status checks
-        Promise.all(
-          feedbacksToProcess.map(item => 
-            HttpService.get(`/feedback/${item.feedbackId || item.id}/has-upvoted`)
-              .then(res => ({ id: item.feedbackId || item.id, hasUpvoted: res.hasUpvoted }))
-              .catch(() => ({ id: item.feedbackId || item.id, hasUpvoted: false }))
-          )
-        ),
-        // Batch comment count checks
-        Promise.all(
-          feedbacksToProcess.map(item =>
-            HttpService.get(`/feedback/${item.feedbackId || item.id}/comments`)
-              .then(res => ({ id: item.feedbackId || item.id, count: res?.length || 0 }))
-              .catch(() => ({ id: item.feedbackId || item.id, count: 0 }))
-          )
-        )
-      ]);
-      
-      // Process upvote results
+      // Process upvote results & comment counts directly from the main payload avoiding N+1 queries
       const upvoteStatus = {};
-      upvoteResults.forEach(result => {
-        upvoteStatus[result.id] = result.hasUpvoted;
-      });
-      setUserUpvotes(upvoteStatus);
-      
-      // Process comment counts
       const commentCountMap = {};
-      commentResults.forEach(result => {
-        commentCountMap[result.id] = result.count;
+      
+      sortedFeedbacks.forEach(item => {
+        const id = item.feedbackId || item.id;
+        upvoteStatus[id] = item.userHasUpvoted || false;
+        commentCountMap[id] = item.commentCount || 0;
       });
+      
+      setUserUpvotes(upvoteStatus);
       setCommentCounts(commentCountMap);
       
     } catch (error) {

@@ -6,28 +6,21 @@ const NotificationBell = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // Fetch notifications and unread count periodically
   useEffect(() => {
     fetchNotifications();
-    // Poll every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    fetchUnreadCount();
+    
+    // Poll every 10 seconds for new notifications
+    const interval = setInterval(() => {
+      fetchNotifications();
+      fetchUnreadCount();
+    }, 10000);
+    
     return () => clearInterval(interval);
   }, []);
 
-  // Add this to fetch unread count periodically
-useEffect(() => {
-  fetchNotifications();
-  fetchUnreadCount();
-  
-  // Poll every 10 seconds for new notifications
-  const interval = setInterval(() => {
-    fetchNotifications();
-    fetchUnreadCount();
-  }, 10000);
-  
-  return () => clearInterval(interval);
-}, []);
-
-const fetchUnreadCount = async () => {
+  const fetchUnreadCount = async () => {
   try {
     const response = await HttpService.get('/notifications/unread-count');
     setUnreadCount(response.count);

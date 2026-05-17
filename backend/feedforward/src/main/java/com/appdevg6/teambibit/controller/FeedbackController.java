@@ -102,6 +102,23 @@ public class FeedbackController {
         List<FeedbackResponse> result = new ArrayList<>();
         String currentUser = auth.getName();
         
+        // Optimizations: eliminate N+1 queries.
+        // 1. Fetch all users and index their full names by email
+        List<UserEntity> allUsers = userRepository.findAll();
+        Map<String, String> userEmailToNameMap = new HashMap<>();
+        for (UserEntity user : allUsers) {
+            userEmailToNameMap.put(user.getEmail(), user.getFullName());
+        }
+
+        // 2. Fetch all comment counts grouped by feedbackId
+        List<Object[]> commentCounts = commentRepository.countCommentsByFeedbackId();
+        Map<Long, Integer> feedbackCommentCountMap = new HashMap<>();
+        for (Object[] countObj : commentCounts) {
+            Long fId = ((Number) countObj[0]).longValue();
+            Integer count = ((Number) countObj[1]).intValue();
+            feedbackCommentCountMap.put(fId, count);
+        }
+        
         for (FeedbackEntity feedback : feedbacks) {
             FeedbackResponse response = new FeedbackResponse();
             response.setFeedbackId(feedback.getFeedbackId());
@@ -122,9 +139,8 @@ public class FeedbackController {
             } else {
                 String authorEmail = feedback.getAuthorEmail();
                 if (authorEmail != null) {
-                    Optional<UserEntity> user = userRepository.findByEmail(authorEmail);
-                    if (user.isPresent()) {
-                        response.setAuthorName(user.get().getFullName());
+                    if (userEmailToNameMap.containsKey(authorEmail)) {
+                        response.setAuthorName(userEmailToNameMap.get(authorEmail));
                     } else {
                         response.setAuthorName(authorEmail.split("@")[0]);
                     }
@@ -137,6 +153,9 @@ public class FeedbackController {
             Set<String> upvotedUsers = feedback.getUpvotedUsers();
             response.setUserHasUpvoted(upvotedUsers != null && upvotedUsers.contains(currentUser));
             
+            // Get comment count efficiently from map
+            response.setCommentCount(feedbackCommentCountMap.getOrDefault(feedback.getFeedbackId(), 0));
+            
             result.add(response);
         }
         
@@ -147,6 +166,24 @@ public class FeedbackController {
     public ResponseEntity<List<FeedbackResponse>> getUserFeedback(Authentication auth) {
         List<FeedbackEntity> feedbacks = feedbackRepository.findByAuthorEmail(auth.getName());
         List<FeedbackResponse> result = new ArrayList<>();
+        String currentUser = auth.getName();
+        
+        // Optimizations: eliminate N+1 queries.
+        // 1. Fetch all users and index their full names by email
+        List<UserEntity> allUsers = userRepository.findAll();
+        Map<String, String> userEmailToNameMap = new HashMap<>();
+        for (UserEntity user : allUsers) {
+            userEmailToNameMap.put(user.getEmail(), user.getFullName());
+        }
+
+        // 2. Fetch all comment counts grouped by feedbackId
+        List<Object[]> commentCounts = commentRepository.countCommentsByFeedbackId();
+        Map<Long, Integer> feedbackCommentCountMap = new HashMap<>();
+        for (Object[] countObj : commentCounts) {
+            Long fId = ((Number) countObj[0]).longValue();
+            Integer count = ((Number) countObj[1]).intValue();
+            feedbackCommentCountMap.put(fId, count);
+        }
         
         for (FeedbackEntity feedback : feedbacks) {
             FeedbackResponse response = new FeedbackResponse();
@@ -162,15 +199,13 @@ public class FeedbackController {
             response.setVotes(feedback.getVotes() != null ? feedback.getVotes() : 0);
             response.setAnonymous(feedback.isAnonymous());
             
-            // Get author name - show "Anonymous" if anonymous is true
             if (feedback.isAnonymous()) {
                 response.setAuthorName("Anonymous");
             } else {
                 String authorEmail = feedback.getAuthorEmail();
                 if (authorEmail != null) {
-                    Optional<UserEntity> user = userRepository.findByEmail(authorEmail);
-                    if (user.isPresent()) {
-                        response.setAuthorName(user.get().getFullName());
+                    if (userEmailToNameMap.containsKey(authorEmail)) {
+                        response.setAuthorName(userEmailToNameMap.get(authorEmail));
                     } else {
                         response.setAuthorName(authorEmail.split("@")[0]);
                     }
@@ -179,6 +214,12 @@ public class FeedbackController {
                 }
             }
             
+            Set<String> upvotedUsers = feedback.getUpvotedUsers();
+            response.setUserHasUpvoted(upvotedUsers != null && upvotedUsers.contains(currentUser));
+            
+            // Get comment count efficiently from map
+            response.setCommentCount(feedbackCommentCountMap.getOrDefault(feedback.getFeedbackId(), 0));
+
             result.add(response);
         }
         
@@ -223,6 +264,8 @@ public class FeedbackController {
                     Set<String> upvotedUsers = feedback.getUpvotedUsers();
                     response.setUserHasUpvoted(upvotedUsers != null && upvotedUsers.contains(auth.getName()));
                     
+                    response.setCommentCount(commentRepository.countByFeedbackId(feedback.getFeedbackId()));
+
                     return ResponseEntity.ok(response);
                 })
                 .orElse(ResponseEntity.notFound().build());
