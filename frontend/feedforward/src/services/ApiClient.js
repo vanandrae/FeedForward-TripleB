@@ -1,4 +1,4 @@
-// src/services/ApiClient.js
+
 import axios from 'axios';
 import API_BASE_URL from './ApiConstants';
 import { setupInterceptors } from './Interceptor';
@@ -15,7 +15,7 @@ const ApiClient = axios.create({
 
 console.log('📡 Axios baseURL set to:', ApiClient.defaults.baseURL);
 
-// Add request interceptor to log full URL
+
 ApiClient.interceptors.request.use(
   (config) => {
     console.log(`🚀 Request URL: ${config.baseURL}${config.url}`);
@@ -28,7 +28,7 @@ ApiClient.interceptors.request.use(
   }
 );
 
-// Setup interceptors
+
 setupInterceptors(ApiClient);
 
 export default ApiClient;

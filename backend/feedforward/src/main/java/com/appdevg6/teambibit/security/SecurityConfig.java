@@ -47,14 +47,14 @@ public class SecurityConfig {
             .and()
             .csrf().disable()
             .authorizeRequests()
-                // Public endpoints - NO authentication required
+
                 .antMatchers("/api/auth/**").permitAll()
                 .antMatchers("/api/auth/login").permitAll()
                 .antMatchers("/api/auth/register").permitAll()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                // Admin endpoints - require ADMIN role
+
                 .antMatchers("/api/admin/**").hasRole("ADMIN")
-                // All other requests require authentication
+
                 .anyRequest().authenticated()
             .and()
             .sessionManagement()

@@ -1,4 +1,4 @@
-// src/services/HttpService.js
+
 import ApiClient from './ApiClient';
 
 class HttpService {

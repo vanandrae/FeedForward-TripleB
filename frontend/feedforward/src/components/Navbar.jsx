@@ -16,9 +16,9 @@ const Navbar = () => {
         <div className="flex items-center gap-4">
           {/* Notification Bell */}
           <NotificationBell />
-          
+
           {/* User Menu */}
-          
+
         </div>
       </div>
     </nav>

@@ -43,16 +43,16 @@ const ProfilePictureUpload = ({ currentImage, onImageUpload, onClose }) => {
         resolve(previewUrl);
         return;
       }
-      
+
       const canvas = document.createElement('canvas');
       const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
       const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
-      
-      // Make image smaller (150x150)
+
+
       canvas.width = 150;
       canvas.height = 150;
       const ctx = canvas.getContext('2d');
-      
+
       ctx.drawImage(
         imgRef.current,
         completedCrop.x * scaleX,
@@ -64,8 +64,8 @@ const ProfilePictureUpload = ({ currentImage, onImageUpload, onClose }) => {
         150,
         150
       );
-      
-      // Compress as JPEG with 70% quality
+
+
       resolve(canvas.toDataURL('image/jpeg', 0.7));
     });
   };
@@ -75,7 +75,7 @@ const ProfilePictureUpload = ({ currentImage, onImageUpload, onClose }) => {
       setError('Please select an image first');
       return;
     }
-    
+
     setUploading(true);
     setError('');
     try {
@@ -97,13 +97,13 @@ const ProfilePictureUpload = ({ currentImage, onImageUpload, onClose }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <h3 className="text-lg font-semibold mb-4">Update Profile Picture</h3>
-        
+
         {error && (
           <div className="mb-4 p-2 bg-red-100 text-red-700 rounded text-sm">
             ❌ {error}
           </div>
         )}
-        
+
         <div className="mb-4">
           <input
             type="file"
@@ -113,7 +113,7 @@ const ProfilePictureUpload = ({ currentImage, onImageUpload, onClose }) => {
           />
           <p className="text-xs text-gray-400 mt-1">Max size: 2MB. Recommended: Square image</p>
         </div>
-        
+
         {previewUrl && (
           <div className="mb-4">
             <ReactCrop
@@ -132,7 +132,7 @@ const ProfilePictureUpload = ({ currentImage, onImageUpload, onClose }) => {
             </ReactCrop>
           </div>
         )}
-        
+
         <div className="flex gap-3 justify-end">
           <button
             onClick={onClose}

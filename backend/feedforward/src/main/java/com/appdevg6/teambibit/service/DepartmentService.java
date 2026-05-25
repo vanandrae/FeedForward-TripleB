@@ -15,17 +15,17 @@ public class DepartmentService {
     @Autowired
     private DepartmentRepository departmentRepository;
 
-    // CREATE a new department
+
     public DepartmentEntity createDepartment(DepartmentEntity department) {
         return departmentRepository.save(department);
     }
 
-    // READ all departments
+
     public List<DepartmentEntity> getAllDepartments() {
         return departmentRepository.findAll();
     }
 
-    // GET a department by ID
+
     public DepartmentEntity getDepartmentById(Long id) {
         Optional<DepartmentEntity> department = departmentRepository.findById(id);
         if (department.isPresent()) {
@@ -35,12 +35,12 @@ public class DepartmentService {
         }
     }
 
-    // UPDATE a department
+
     public DepartmentEntity updateDepartment(Long id, DepartmentEntity departmentDetails) {
         try {
-            // Search for the department by ID
+
             DepartmentEntity department = departmentRepository.findById(id).get();
-            department.setDepartmentName(departmentDetails.getDepartmentName());  // Changed from setName
+            department.setDepartmentName(departmentDetails.getDepartmentName());
             department.setDescription(departmentDetails.getDescription());
             return departmentRepository.save(department);
         } catch (NoSuchElementException ex) {
@@ -48,7 +48,7 @@ public class DepartmentService {
         }
     }
 
-    // DELETE a department
+
     public String deleteDepartment(Long id) {
         String msg = "";
         if (departmentRepository.findById(id).isPresent()) {

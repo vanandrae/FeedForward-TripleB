@@ -6,35 +6,35 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "reports")
 public class ReportEntity {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(name = "feedback_id", nullable = false)
     private Long feedbackId;
-    
+
     @Column(name = "feedback_title")
     private String feedbackTitle;
-    
+
     @Column(name = "reported_by")
     private String reportedBy;
-    
+
     @Column(name = "reason", nullable = false)
     private String reason;
-    
+
     @Column(name = "status")
     private String status = "pending";
-    
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
-    
-    // Getters and Setters
+
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getFeedbackId() { return feedbackId; }

@@ -45,10 +45,10 @@ const FeedbackDetails = () => {
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     if (submitting) return;
-    
+
     setSubmitting(true);
     try {
-      await HttpService.post(`/feedback/${id}/comments`, { 
+      await HttpService.post(`/feedback/${id}/comments`, {
         comment: newComment,
         anonymous: isAnonymous
       });
@@ -135,7 +135,7 @@ const FeedbackDetails = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
-        <button 
+        <button
           onClick={() => navigate('/feedback')}
           className="mb-4 text-blue-600 hover:text-blue-700 flex items-center gap-2"
         >
@@ -164,7 +164,7 @@ const FeedbackDetails = () => {
                   )}
                 </div>
               </div>
-              
+
               {(isAdmin || isFaculty) && (
                 <select
                   value={feedback.status?.toLowerCase() || 'pending'}
@@ -202,7 +202,7 @@ const FeedbackDetails = () => {
               <h3 className="font-semibold text-gray-700 mb-4">
                 Comments ({comments.length})
               </h3>
-              
+
               <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
                 {comments.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>
@@ -212,9 +212,9 @@ const FeedbackDetails = () => {
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center">
                           {!comment.isAnonymous && comment.profilePicture ? (
-                            <img 
-                              src={comment.profilePicture} 
-                              alt={comment.authorName} 
+                            <img
+                              src={comment.profilePicture}
+                              alt={comment.authorName}
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -251,7 +251,7 @@ const FeedbackDetails = () => {
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                   placeholder="Add a comment..."
                 />
-                
+
                 <div className="flex items-center justify-between mt-3">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -265,7 +265,7 @@ const FeedbackDetails = () => {
                       <span className="text-xs text-gray-400 ml-1">(your name won't be shown)</span>
                     </span>
                   </label>
-                  
+
                   <button
                     onClick={handleAddComment}
                     disabled={submitting || !newComment.trim()}

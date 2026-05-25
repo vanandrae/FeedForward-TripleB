@@ -12,7 +12,7 @@ const RegisterForm = () => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  
+
   const { register } = useAuth();
 
   const handleChange = (e) => {
@@ -25,41 +25,41 @@ const RegisterForm = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!validateName(formData.name)) {
       newErrors.name = 'Name must be at least 2 characters';
     }
-    
+
     if (!validateEmail(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-    
+
     if (!validatePassword(formData.password)) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setLoading(true);
     const result = await register({
       name: formData.name,
       email: formData.email,
       password: formData.password,
-      role: 'student' // Fixed role - always student
+      role: 'student'
     });
     setLoading(false);
-    
+
     if (!result.success) {
       setErrors({ general: result.message });
     }
@@ -70,7 +70,7 @@ const RegisterForm = () => {
       {errors.general && (
         <div className="auth-error">{errors.general}</div>
       )}
-      
+
       <div className="form-group">
         <label htmlFor="name" className="form-label">Full Name</label>
         <input

@@ -236,13 +236,13 @@ const AdminReports = () => {
                       {report.status}
                     </span>
                   </div>
-                  
+
                   <div className="bg-red-50 p-3 rounded-lg mb-4">
                     <p className="text-sm text-red-700">
                       <span className="font-semibold">Report Reason:</span> {report.reason}
                     </p>
                   </div>
-                  
+
                   <div className="flex gap-3">
                     <button
                       onClick={() => handleDeleteFeedback(report.feedbackId, report.feedbackTitle)}
@@ -325,8 +325,8 @@ const AdminReports = () => {
                               onClick={() => handleBanUser(user.userId || user.id, user.fullName || user.name, user.banned)}
                               disabled={actionLoading}
                               className={`px-2 py-1 rounded text-xs text-white transition ${
-                                user.banned 
-                                  ? 'bg-green-600 hover:bg-green-700' 
+                                user.banned
+                                  ? 'bg-green-600 hover:bg-green-700'
                                   : 'bg-yellow-600 hover:bg-yellow-700'
                               } disabled:opacity-50`}
                             >

@@ -1,4 +1,4 @@
-// src/pages/Profile.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -24,7 +24,7 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     fullName: '',
     department: '',
-    currentPassword: '',  // Add current password field
+    currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
@@ -50,7 +50,7 @@ const Profile = () => {
     try {
       const response = await HttpService.get(API_ENDPOINTS.GET_USER_PROFILE);
       console.log('Profile response:', response);
-      
+
       setProfile({
         userId: response.userId || response.id || '',
         fullName: response.fullName || response.name || '',
@@ -59,7 +59,7 @@ const Profile = () => {
         department: response.department || '',
         createdAt: response.createdAt || response.created_at || ''
       });
-      
+
       setFormData({
         fullName: response.fullName || response.name || '',
         department: response.department || '',
@@ -79,14 +79,14 @@ const Profile = () => {
     try {
       const response = await HttpService.get(API_ENDPOINTS.GET_USER_FEEDBACK);
       const feedbacks = response || [];
-      
+
       const stats = {
         total: feedbacks.length,
         resolved: feedbacks.filter(f => f.status?.toUpperCase() === 'RESOLVED').length,
         pending: feedbacks.filter(f => f.status?.toUpperCase() === 'PENDING').length,
         inReview: feedbacks.filter(f => f.status?.toUpperCase() === 'IN_REVIEW').length
       };
-      
+
       setFeedbackStats(stats);
     } catch (error) {
       console.error('Error fetching feedback stats:', error);
@@ -104,58 +104,58 @@ const Profile = () => {
         department: formData.department
       };
 
-      // Check if user wants to change password
+
       if (formData.newPassword) {
-        // Validate current password is provided
+
         if (!formData.currentPassword) {
           setError('Please enter your current password to change password');
           setLoading(false);
           return;
         }
-        
+
         if (formData.newPassword.length < 6) {
           setError('New password must be at least 6 characters');
           setLoading(false);
           return;
         }
-        
+
         if (formData.newPassword !== formData.confirmPassword) {
           setError('New passwords do not match');
           setLoading(false);
           return;
         }
-        
-        // Add current password and new password to update data
+
+
         updateData.currentPassword = formData.currentPassword;
         updateData.newPassword = formData.newPassword;
       }
 
       const response = await HttpService.put(API_ENDPOINTS.UPDATE_USER_PROFILE, updateData);
-      
+
       if (response.error) {
         setError(response.error);
         setLoading(false);
         return;
       }
-      
-      const updatedUser = { 
-        ...user, 
-        fullName: formData.fullName, 
-        department: formData.department 
+
+      const updatedUser = {
+        ...user,
+        fullName: formData.fullName,
+        department: formData.department
       };
       localStorage.setItem('userData', JSON.stringify(updatedUser));
-      
+
       setSuccess('Profile updated successfully!');
       setEditing(false);
       await fetchProfile();
-      
+
       setFormData(prev => ({
         ...prev,
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       }));
-      
+
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       setError(error.response?.data?.message || error.message || 'Failed to update profile');
@@ -270,7 +270,7 @@ const Profile = () => {
             )}
 
             {!editing ? (
-              // View Mode
+
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="border-b pb-3">
@@ -317,7 +317,7 @@ const Profile = () => {
                 </div>
               </div>
             ) : (
-              // Edit Mode
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Full Name</label>
@@ -345,7 +345,7 @@ const Profile = () => {
                   <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                     🔒 Change Password
                   </h3>
-                  
+
                   <div className="space-y-3">
                     <div>
                       <label className="block text-gray-700 text-sm mb-1">Current Password</label>

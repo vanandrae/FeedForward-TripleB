@@ -6,40 +6,40 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "notifications")
 public class NotificationEntity {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(name = "user_email", nullable = false)
     private String userEmail;
-    
+
     @Column(name = "title", nullable = false)
     private String title;
-    
+
     @Column(name = "message", nullable = false)
     private String message;
-    
+
     @Column(name = "type")
     private String type;
-    
+
     @Column(name = "is_read")
     private boolean isRead = false;
-    
+
     @Column(name = "related_id")
     private Long relatedId;
-    
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
 
-    
-    
-    // Getters and Setters
+
+
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getUserEmail() { return userEmail; }

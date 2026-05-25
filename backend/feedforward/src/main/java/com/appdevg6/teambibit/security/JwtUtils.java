@@ -8,7 +8,7 @@ import java.util.Date;
 public class JwtUtils {
 
     private static final String JWT_SECRET = "FeedForwardSuperSecretKeyForJWTTokenGenerationMustBe256Bits!!";
-    private static final long JWT_EXPIRATION_MS = 86400000; // 24 hours
+    private static final long JWT_EXPIRATION_MS = 86400000;
 
     public String generateToken(String email) {
         return Jwts.builder()

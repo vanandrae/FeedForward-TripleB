@@ -28,15 +28,15 @@ public class UserEntity {
 
     @Column(name = "department")
     private String department;
-    
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "banned")
     private boolean banned = false;
-    
-    @Column(name = "profile_picture", length = 500)  // NEW FIELD
-    private String profilePicture;  // Store URL or base64 string
+
+    @Column(name = "profile_picture", length = 500)
+    private String profilePicture;
 
     public UserEntity() {}
 
@@ -47,13 +47,13 @@ public class UserEntity {
         this.role = role;
         this.department = department;
     }
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
 
-    // Getters
+
     public Long getUserId() { return userId; }
     public String getFullName() { return fullName; }
     public String getEmail() { return email; }
@@ -64,7 +64,7 @@ public class UserEntity {
     public boolean isBanned() { return banned; }
     public String getProfilePicture() { return profilePicture; }
 
-    // Setters
+
     public void setUserId(Long userId) { this.userId = userId; }
     public void setFullName(String fullName) { this.fullName = fullName; }
     public void setEmail(String email) { this.email = email; }

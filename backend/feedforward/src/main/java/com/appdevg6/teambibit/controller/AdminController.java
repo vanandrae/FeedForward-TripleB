@@ -18,7 +18,7 @@ public class AdminController {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private NotificationRepository notificationRepository;
 
@@ -36,7 +36,7 @@ public class AdminController {
         if (user.isPresent()) {
             user.get().setRole(payload.get("role"));
             userRepository.save(user.get());
-            
+
             NotificationEntity notification = new NotificationEntity();
             notification.setUserEmail(user.get().getEmail());
             notification.setTitle("Role Updated");
@@ -44,12 +44,12 @@ public class AdminController {
             notification.setType("role_change");
             notification.setCreatedAt(LocalDateTime.now());
             notificationRepository.save(notification);
-            
+
             return ResponseEntity.ok(Map.of("message", "Role updated successfully"));
         }
         return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
     }
-    
+
     @PutMapping("/users/{id}/ban")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> banUser(@PathVariable Long id, @RequestBody Map<String, Boolean> payload) {
@@ -58,22 +58,22 @@ public class AdminController {
             boolean isBanned = payload.getOrDefault("banned", true);
             user.get().setBanned(isBanned);
             userRepository.save(user.get());
-            
+
             NotificationEntity notification = new NotificationEntity();
             notification.setUserEmail(user.get().getEmail());
             notification.setTitle(isBanned ? "Account Banned" : "Account Unbanned");
-            notification.setMessage(isBanned ? 
+            notification.setMessage(isBanned ?
                 "Your account has been banned by an administrator. You can no longer log in. Contact support for more information." :
                 "Your account has been unbanned. You can now log in again.");
             notification.setType("account_status");
             notification.setCreatedAt(LocalDateTime.now());
             notificationRepository.save(notification);
-            
+
             return ResponseEntity.ok(Map.of("message", isBanned ? "User banned successfully" : "User unbanned successfully"));
         }
         return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
     }
-    
+
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {

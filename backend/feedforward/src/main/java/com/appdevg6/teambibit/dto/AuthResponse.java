@@ -21,7 +21,7 @@ public class AuthResponse {
         this.banned = false;
     }
 
-    // Getters
+
     public String getToken() { return token; }
     public String getType() { return type; }
     public Long getUserId() { return userId; }
@@ -31,7 +31,7 @@ public class AuthResponse {
     public String getDepartment() { return department; }
     public boolean isBanned() { return banned; }
 
-    // Setters
+
     public void setToken(String token) { this.token = token; }
     public void setType(String type) { this.type = type; }
     public void setUserId(Long userId) { this.userId = userId; }

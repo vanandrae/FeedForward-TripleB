@@ -6,40 +6,40 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "comments")
 public class CommentEntity {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(name = "feedback_id", nullable = false)
     private Long feedbackId;
-    
+
     @Column(name = "author_email", nullable = false)
     private String authorEmail;
-    
+
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
-    
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
+
     @Column(name = "is_anonymous")
     private boolean anonymous = false;
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
-    
-    // Getters
+
+
     public Long getId() { return id; }
     public Long getFeedbackId() { return feedbackId; }
     public String getAuthorEmail() { return authorEmail; }
     public String getContent() { return content; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public boolean isAnonymous() { return anonymous; }
-    
-    // Setters
+
+
     public void setId(Long id) { this.id = id; }
     public void setFeedbackId(Long feedbackId) { this.feedbackId = feedbackId; }
     public void setAuthorEmail(String authorEmail) { this.authorEmail = authorEmail; }

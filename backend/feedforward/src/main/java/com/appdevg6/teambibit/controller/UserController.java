@@ -20,7 +20,7 @@ public class UserController {
 
     private final UserService userService;
     private final FeedbackService feedbackService;
-    
+
     @Autowired
     private UserRepository userRepository;
 
@@ -41,8 +41,8 @@ public class UserController {
                                                              @RequestBody Map<String, String> payload) {
         return ResponseEntity.ok(userService.updateProfileByEmail(authentication.getName(), payload));
     }
-    
-    // NEW: Update profile picture with better error handling
+
+
     @PutMapping("/profile-picture")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> updateProfilePicture(Authentication authentication,
@@ -50,28 +50,28 @@ public class UserController {
         try {
             String email = authentication.getName();
             String profilePicture = payload.get("profilePicture");
-            
+
             System.out.println("========================================");
             System.out.println("Updating profile picture for: " + email);
             System.out.println("Image data length: " + (profilePicture != null ? profilePicture.length() : 0));
             System.out.println("Has data: " + (profilePicture != null && profilePicture.length() > 100));
-            
+
             if (profilePicture == null || profilePicture.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "No image data provided"));
             }
-            
+
             Optional<UserEntity> userOpt = userRepository.findByEmail(email);
             if (!userOpt.isPresent()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
             }
-            
+
             UserEntity user = userOpt.get();
             user.setProfilePicture(profilePicture);
             userRepository.save(user);
-            
+
             System.out.println("Profile picture saved successfully for: " + email);
             System.out.println("========================================");
-            
+
             Map<String, String> response = new HashMap<>();
             response.put("message", "Profile picture updated successfully");
             response.put("profilePicture", profilePicture);

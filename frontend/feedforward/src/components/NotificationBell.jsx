@@ -6,17 +6,17 @@ const NotificationBell = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Fetch notifications and unread count periodically
+
   useEffect(() => {
     fetchNotifications();
     fetchUnreadCount();
-    
-    // Poll every 10 seconds for new notifications
+
+
     const interval = setInterval(() => {
       fetchNotifications();
       fetchUnreadCount();
     }, 10000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -36,7 +36,7 @@ const NotificationBell = () => {
       setUnreadCount(response.filter(n => !n.read).length);
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      // Don't show error to user, just log it
+
     }
   };
 
@@ -75,7 +75,7 @@ const NotificationBell = () => {
         className="relative text-white hover:bg-white/10 p-2 rounded-full transition-colors"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
         {unreadCount > 0 && (
@@ -90,7 +90,7 @@ const NotificationBell = () => {
           <div className="p-3 border-b flex justify-between items-center sticky top-0 bg-white">
             <h3 className="font-semibold text-gray-800">Notifications</h3>
             {unreadCount > 0 && (
-              <button 
+              <button
                 onClick={markAllAsRead}
                 className="text-xs text-blue-600 hover:text-blue-700"
               >
@@ -98,7 +98,7 @@ const NotificationBell = () => {
               </button>
             )}
           </div>
-          
+
           {notifications.length === 0 ? (
             <div className="p-6 text-center text-gray-500">
               <div className="text-4xl mb-2">🔔</div>
@@ -107,7 +107,7 @@ const NotificationBell = () => {
           ) : (
             <div>
               {notifications.map(notif => (
-                <div 
+                <div
                   key={notif.id}
                   onClick={() => markAsRead(notif.id)}
                   className={`p-3 border-b hover:bg-gray-50 cursor-pointer transition ${

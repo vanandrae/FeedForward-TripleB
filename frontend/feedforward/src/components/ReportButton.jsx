@@ -9,12 +9,12 @@ const ReportButton = ({ feedbackId, feedbackTitle }) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Don't render button for admins
+
   if (isAdmin) {
     return null;
   }
 
-  // Only faculty can report
+
   if (!isFaculty) {
     return null;
   }
@@ -27,7 +27,7 @@ const ReportButton = ({ feedbackId, feedbackTitle }) => {
 
     setSubmitting(true);
     setError('');
-    
+
     try {
       await HttpService.post('/reports/create', {
         feedbackId: feedbackId,
@@ -60,13 +60,13 @@ const ReportButton = ({ feedbackId, feedbackTitle }) => {
             <p className="text-gray-600 text-sm mb-4">
               Reporting: <span className="font-medium">{feedbackTitle}</span>
             </p>
-            
+
             {error && (
               <div className="mb-4 p-2 bg-red-100 text-red-700 rounded text-sm">
                 {error}
               </div>
             )}
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm mb-2">Reason for reporting</label>
               <select

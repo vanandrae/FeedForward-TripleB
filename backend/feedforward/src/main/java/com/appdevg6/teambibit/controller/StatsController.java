@@ -27,7 +27,7 @@ public class StatsController {
         stats.put("pending", pending);
         stats.put("inReview", inReview);
         stats.put("resolved", resolved);
-        
+
         return ResponseEntity.ok(stats);
     }
 }

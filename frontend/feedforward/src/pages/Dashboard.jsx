@@ -31,35 +31,35 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-  // Optimized: Single function to fetch all data in parallel
+
   const fetchDashboardData = async () => {
     try {
-      // Fetch stats and feedback in parallel
+
       const [statsResponse, feedbackResponse] = await Promise.all([
         HttpService.get(API_ENDPOINTS.GET_DASHBOARD_STATS),
         HttpService.get(API_ENDPOINTS.GET_ALL_FEEDBACK)
       ]);
-      
+
       setStats(statsResponse);
       const feedbacks = feedbackResponse || [];
-      
-      // Sort by votes
+
+
       const sortedFeedbacks = [...feedbacks].sort((a, b) => (b.votes || 0) - (a.votes || 0));
       setAllFeedback(sortedFeedbacks);
-      
-      // Process upvote results & comment counts directly from the main payload avoiding N+1 queries
+
+
       const upvoteStatus = {};
       const commentCountMap = {};
-      
+
       sortedFeedbacks.forEach(item => {
         const id = item.feedbackId || item.id;
         upvoteStatus[id] = item.userHasUpvoted || false;
         commentCountMap[id] = item.commentCount || 0;
       });
-      
+
       setUserUpvotes(upvoteStatus);
       setCommentCounts(commentCountMap);
-      
+
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -67,31 +67,31 @@ const Dashboard = () => {
     }
   };
 
-  // Rest of your component remains the same...
+
   const applyFilters = useCallback(() => {
     let filtered = [...allFeedback];
-    
+
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         item.title?.toLowerCase().includes(term) ||
         item.description?.toLowerCase().includes(term) ||
         item.authorEmail?.toLowerCase().includes(term)
       );
     }
-    
+
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         item.status?.toLowerCase() === statusFilter.toLowerCase()
       );
     }
-    
+
     if (categoryFilter !== 'all') {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         item.category?.toLowerCase() === categoryFilter.toLowerCase()
       );
     }
-    
+
     return filtered.sort((a, b) => (b.votes || 0) - (a.votes || 0));
   }, [allFeedback, searchTerm, statusFilter, categoryFilter]);
 
@@ -99,17 +99,17 @@ const Dashboard = () => {
 
   const handleAddComment = async (feedbackId) => {
     if (!commentText.trim() || submitting) return;
-    
+
     setSubmitting(true);
     try {
       await HttpService.post(`/feedback/${feedbackId}/comments`, { comment: commentText });
       setCommentText('');
       setShowCommentBox(null);
-      
-      // Only refresh the comment count for this specific feedback
+
+
       const response = await HttpService.get(`/feedback/${feedbackId}/comments`);
       setCommentCounts(prev => ({ ...prev, [feedbackId]: response?.length || 0 }));
-      
+
     } catch (error) {
       console.error('Error adding comment:', error);
       alert('Failed to add comment');
@@ -120,31 +120,31 @@ const Dashboard = () => {
 
   const handleToggleUpvote = async (feedbackId) => {
     if (upvoting === feedbackId) return;
-    
+
     setUpvoting(feedbackId);
     const wasUpvoted = userUpvotes[feedbackId];
-    
-    // Optimistic update
+
+
     setUserUpvotes(prev => ({ ...prev, [feedbackId]: !wasUpvoted }));
-    setAllFeedback(prev => prev.map(item => 
-      (item.feedbackId || item.id) === feedbackId 
+    setAllFeedback(prev => prev.map(item =>
+      (item.feedbackId || item.id) === feedbackId
         ? { ...item, votes: (item.votes || 0) + (wasUpvoted ? -1 : 1) }
         : item
     ));
-    
+
     try {
       const response = await HttpService.post(`/feedback/${feedbackId}/upvote`, {});
       setUserUpvotes(prev => ({ ...prev, [feedbackId]: response.upvoted }));
-      setAllFeedback(prev => prev.map(item => 
-        (item.feedbackId || item.id) === feedbackId 
+      setAllFeedback(prev => prev.map(item =>
+        (item.feedbackId || item.id) === feedbackId
           ? { ...item, votes: response.votes }
           : item
       ));
     } catch (error) {
-      // Revert on error
+
       setUserUpvotes(prev => ({ ...prev, [feedbackId]: wasUpvoted }));
-      setAllFeedback(prev => prev.map(item => 
-        (item.feedbackId || item.id) === feedbackId 
+      setAllFeedback(prev => prev.map(item =>
+        (item.feedbackId || item.id) === feedbackId
           ? { ...item, votes: (item.votes || 0) + (wasUpvoted ? 1 : -1) }
           : item
       ));
@@ -260,7 +260,7 @@ const Dashboard = () => {
         {/* Search and Filters */}
         <div className="px-6 mb-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-3">Community Feedback Feed</h3>
-          
+
           <input
             type="text"
             placeholder="🔍 Search by title, description, or author email..."
@@ -268,7 +268,7 @@ const Dashboard = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 border rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          
+
           <div className="flex flex-wrap gap-3 mb-3">
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 border rounded-lg text-sm">
               <option value="all">All Status</option>
@@ -276,7 +276,7 @@ const Dashboard = () => {
               <option value="in_review">In Review</option>
               <option value="resolved">Resolved</option>
             </select>
-            
+
             <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="px-3 py-2 border rounded-lg text-sm">
               <option value="all">All Categories</option>
               <option value="bug">Bug Report</option>
@@ -284,14 +284,14 @@ const Dashboard = () => {
               <option value="improvement">Improvement</option>
               <option value="feedback">General Feedback</option>
             </select>
-            
+
             {(searchTerm || statusFilter !== 'all' || categoryFilter !== 'all') && (
               <button onClick={clearFilters} className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm">
                 Clear Filters ✕
               </button>
             )}
           </div>
-          
+
           <p className="text-sm text-gray-500">Showing {displayFeedback.length} of {allFeedback.length} feedback items (sorted by most upvotes)</p>
         </div>
 
@@ -308,7 +308,7 @@ const Dashboard = () => {
               const feedbackId = feedbackItem.feedbackId || feedbackItem.id;
               const hasUpvoted = userUpvotes[feedbackId];
               const commentCount = commentCounts[feedbackId] || 0;
-              
+
               return (
                 <div key={feedbackId} className="bg-white rounded-lg shadow p-4 hover:shadow-md transition">
                   <div className="flex justify-between items-start mb-2">
@@ -335,11 +335,11 @@ const Dashboard = () => {
                   <p className="text-gray-600 text-sm mt-2 mb-2 line-clamp-2">{feedbackItem.description}</p>
 
                   <div className="flex items-center gap-4 text-sm">
-                    <button onClick={() => handleToggleUpvote(feedbackId)} disabled={upvoting === feedbackId} 
+                    <button onClick={() => handleToggleUpvote(feedbackId)} disabled={upvoting === feedbackId}
                       className={`flex items-center gap-1 ${hasUpvoted ? 'text-blue-600 font-medium' : 'text-gray-500 hover:text-blue-600'}`}>
                       {upvoting === feedbackId ? '⏳' : '👍'} {feedbackItem.votes || 0}
                     </button>
-                    <button onClick={() => setShowCommentBox(showCommentBox === feedbackId ? null : feedbackId)} 
+                    <button onClick={() => setShowCommentBox(showCommentBox === feedbackId ? null : feedbackId)}
                       className="flex items-center gap-1 text-gray-500 hover:text-blue-600">
                       💬 {commentCount} {commentCount === 1 ? 'Comment' : 'Comments'}
                     </button>
@@ -348,7 +348,7 @@ const Dashboard = () => {
                   {showCommentBox === feedbackId && (
                     <div className="mt-3 pt-3 border-t">
                       <div className="flex gap-2">
-                        <input type="text" value={commentText} onChange={(e) => setCommentText(e.target.value)} 
+                        <input type="text" value={commentText} onChange={(e) => setCommentText(e.target.value)}
                           placeholder="Write a comment..." disabled={submitting}
                           className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         <button onClick={() => handleAddComment(feedbackId)} disabled={submitting}

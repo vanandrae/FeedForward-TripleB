@@ -9,7 +9,7 @@ const Reports = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [reportType, setReportType] = useState('feedback');
-  const [format, setFormat] = useState('csv'); // Removed unused dateRange
+  const [format, setFormat] = useState('csv');
   const [stats, setStats] = useState({
     totalFeedback: 0,
     resolved: 0,
@@ -52,7 +52,7 @@ const Reports = () => {
 
   const generateCSV = () => {
     let data = [];
-    
+
     switch(reportType) {
       case 'feedback':
         data = feedbackData.map(f => ({
@@ -93,17 +93,17 @@ const Reports = () => {
       default:
         data = feedbackData;
     }
-    
+
     if (data.length === 0) {
       alert('No data available for the selected report type');
       return;
     }
-    
-    // Convert to CSV
+
+
     const headers = Object.keys(data[0]);
     const csvRows = [];
     csvRows.push(headers.join(','));
-    
+
     for (const row of data) {
       const values = headers.map(header => {
         const value = row[header] || '';
@@ -111,7 +111,7 @@ const Reports = () => {
       });
       csvRows.push(values.join(','));
     }
-    
+
     const csvContent = csvRows.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -122,7 +122,7 @@ const Reports = () => {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-    
+
     alert('Report generated and downloaded successfully!');
   };
 
@@ -176,11 +176,11 @@ const Reports = () => {
         {/* Report Generator */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Generate Report</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
               <label className="block text-gray-700 mb-2 font-medium">Report Type</label>
-              <select 
+              <select
                 value={reportType}
                 onChange={(e) => setReportType(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -194,7 +194,7 @@ const Reports = () => {
 
             <div>
               <label className="block text-gray-700 mb-2 font-medium">Export Format</label>
-              <select 
+              <select
                 value={format}
                 onChange={(e) => setFormat(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

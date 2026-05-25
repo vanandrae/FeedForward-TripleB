@@ -7,29 +7,29 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { logout, user, isAuthenticated, isAdmin, isStudent } = useAuth();
 
-  // Get menu items based on user role
+
   const getMenuItems = () => {
     const items = [];
 
     if (isAdmin || isStudent) {
       items.push({ to: '/dashboard', label: 'Dashboard' });
     }
-    
-    // Only students & admins can submit feedback
+
+
     if (isStudent || isAdmin) {
       items.push({ to: '/submit-feedback', label: 'Submit Feedback' });
     }
-    
-    // All authenticated users can view feedback
+
+
     items.push({ to: '/feedback', label: 'Feedbacks' });
     items.push({ to: '/profile', label: 'Profile' });
-    
-    // Only admins see reports and analytics
+
+
     if (isAdmin) {
       items.push({ to: '/admin/reports', label: 'Reports' });
       items.push({ to: '/reports', label: 'Analytics' });
     }
-    
+
     return items;
   };
 
@@ -40,7 +40,7 @@ const Sidebar = () => {
     navigate('/login');
   };
 
-  // Don't render sidebar if not authenticated
+
   if (!isAuthenticated) {
     return null;
   }
@@ -58,9 +58,9 @@ const Sidebar = () => {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-white/20">
               {user.profilePicture ? (
-                <img 
-                  src={user.profilePicture} 
-                  alt="Profile" 
+                <img
+                  src={user.profilePicture}
+                  alt="Profile"
                   className="w-full h-full object-cover"
                 />
               ) : (

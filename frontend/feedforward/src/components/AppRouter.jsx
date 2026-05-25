@@ -6,7 +6,7 @@ import Register from './Register';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 
-// Lazy load pages to decrease initial bundle size and optimize loading
+
 const Dashboard = lazy(() => import('../pages/Dashboard'));
 const SubmitFeedback = lazy(() => import('../pages/SubmitFeedback'));
 const ViewFeedback = lazy(() => import('../pages/ViewFeedback'));
@@ -15,10 +15,10 @@ const Profile = lazy(() => import('../pages/Profile'));
 const Reports = lazy(() => import('../pages/Reports'));
 const AdminReports = lazy(() => import('../pages/AdminReports'));
 
-// Main layout component with Sidebar and Navbar
+
 const MainLayout = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -29,11 +29,11 @@ const MainLayout = ({ children }) => {
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return (
     <div className="flex">
       <Sidebar />
@@ -47,10 +47,10 @@ const MainLayout = ({ children }) => {
   );
 };
 
-// Protected Route wrapper
+
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -61,18 +61,18 @@ const ProtectedRoute = ({ children }) => {
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return <MainLayout>{children}</MainLayout>;
 };
 
-// Admin only route wrapper
+
 const AdminRoute = ({ children }) => {
   const { isAuthenticated, isAdmin, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -83,22 +83,22 @@ const AdminRoute = ({ children }) => {
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   if (!isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
-  
+
   return <MainLayout>{children}</MainLayout>;
 };
 
-// Public Route wrapper
+
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -109,15 +109,15 @@ const PublicRoute = ({ children }) => {
       </div>
     );
   }
-  
+
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
-  
+
   return children;
 };
 
-// Main App Content with routes
+
 const AppContent = () => {
   return (
     <Suspense fallback={
@@ -140,7 +140,7 @@ const AppContent = () => {
           <Register />
         </PublicRoute>
       } />
-      
+
       {/* Protected Routes - All authenticated users */}
       <Route path="/" element={
         <ProtectedRoute>
@@ -177,14 +177,14 @@ const AppContent = () => {
           <Reports />
         </ProtectedRoute>
       } />
-      
+
       {/* Admin Only Routes */}
       <Route path="/admin/reports" element={
         <AdminRoute>
           <AdminReports />
         </AdminRoute>
       } />
-      
+
       {/* Catch all */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
@@ -192,7 +192,7 @@ const AppContent = () => {
   );
 };
 
-// Main AppRouter with AuthProvider at the top level
+
 const AppRouter = () => {
   return (
     <Router>

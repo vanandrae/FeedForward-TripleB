@@ -10,7 +10,7 @@ const LoginForm = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const { login } = useAuth();
 
   const handleChange = (e) => {
@@ -23,18 +23,18 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.email || !formData.password) {
       setErrors({ general: 'Please fill in all fields' });
       return;
     }
-    
+
     setLoading(true);
     console.log('Attempting login with:', formData.email);
-    
+
     const result = await login(formData.email, formData.password);
     setLoading(false);
-    
+
     if (!result.success) {
       setErrors({ general: result.message || 'Login failed. Please check your credentials.' });
     }
@@ -45,7 +45,7 @@ const LoginForm = () => {
       {errors.general && (
         <div className="auth-error">{errors.general}</div>
       )}
-      
+
       <div className="form-group">
         <label htmlFor="email" className="form-label">Email Address</label>
         <input

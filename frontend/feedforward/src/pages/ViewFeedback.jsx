@@ -19,20 +19,20 @@ const ViewFeedback = () => {
     setError('');
     try {
       let response;
-      
-      // Admin and Faculty can see ALL feedback
+
+
       if (isAdmin || isFaculty) {
         response = await HttpService.get(API_ENDPOINTS.GET_ALL_FEEDBACK);
       } else {
-        // Students see only their own feedback
+
         response = await HttpService.get(API_ENDPOINTS.GET_USER_FEEDBACK);
       }
-      
-      // OPTIMIZATION: Ensure we have an array and set loading to false immediately
+
+
       const feedbackArray = Array.isArray(response) ? response : [];
       setFeedbackList(feedbackArray);
       setLoading(false);
-      
+
     } catch (error) {
       console.error('Error fetching feedback:', error);
       setError('Failed to load feedback. Please refresh the page.');
@@ -66,7 +66,7 @@ const ViewFeedback = () => {
     }
   };
 
-  // Get display name based on anonymous status
+
   const getAuthorDisplay = (feedback) => {
     if (feedback.anonymous) {
       return 'Anonymous';
@@ -74,10 +74,10 @@ const ViewFeedback = () => {
     return feedback.authorName || feedback.authorEmail?.split('@')[0] || 'Anonymous';
   };
 
-  // Apply search filter (Faculty only)
+
   const filteredBySearch = (feedback) => {
     if (!searchTerm.trim()) return true;
-    
+
     const term = searchTerm.toLowerCase();
     return (
       feedback.title?.toLowerCase().includes(term) ||
@@ -87,16 +87,16 @@ const ViewFeedback = () => {
     );
   };
 
-  // Apply status filter
+
   const filteredFeedback = feedbackList
     .filter(f => {
-      // Status filter
+
       if (filter !== 'all') {
         const feedbackStatus = f.status?.toUpperCase();
         const filterStatus = filter.toUpperCase();
         if (feedbackStatus !== filterStatus) return false;
       }
-      // Search filter (Faculty/Admin only)
+
       if (isFaculty || isAdmin) {
         return filteredBySearch(f);
       }
@@ -116,7 +116,7 @@ const ViewFeedback = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-600 text-xl mb-4">⚠️ {error}</div>
-          <button 
+          <button
             onClick={() => fetchFeedback()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
@@ -133,7 +133,7 @@ const ViewFeedback = () => {
         <h1 className="text-2xl font-bold text-gray-800 mb-6">
           {isAdmin ? 'All Feedback (Admin View)' : isFaculty ? 'All Student Feedback (Faculty View)' : 'My Feedbacks'}
         </h1>
-        
+
         {/* Stats Summary */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-3 text-center">
@@ -241,7 +241,7 @@ const ViewFeedback = () => {
             <p className="text-gray-500 text-lg">No feedback submissions found</p>
             <p className="text-gray-400 text-sm">Try changing the filter or search term</p>
             {isStudent && (
-              <button 
+              <button
                 onClick={() => navigate('/submit-feedback')}
                 className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
               >
@@ -285,7 +285,7 @@ const ViewFeedback = () => {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2 ml-4">
                     <button
                       onClick={() => navigate(`/feedback/${feedback.feedbackId || feedback.id}`)}
@@ -293,7 +293,7 @@ const ViewFeedback = () => {
                     >
                       View Details
                     </button>
-                    
+
                     {/* Report button for Faculty ONLY (not admin) */}
                     {isFaculty && !isAdmin && (
                       <ReportButton feedbackId={feedback.feedbackId || feedback.id} feedbackTitle={feedback.title} />

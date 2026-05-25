@@ -23,17 +23,17 @@ public class FeedbackController {
 
     @Autowired
     private FeedbackRepository feedbackRepository;
-    
+
     @Autowired
     private CommentRepository commentRepository;
-    
+
     @Autowired
     private NotificationRepository notificationRepository;
-    
+
     @Autowired
     private UserRepository userRepository;
 
-    // DTO class for feedback response with author name and anonymous flag
+
     public static class FeedbackResponse {
         private Long feedbackId;
         private String title;
@@ -50,67 +50,67 @@ public class FeedbackController {
         private Integer commentCount;
         private boolean userHasUpvoted;
 
-        // Getters and Setters
+
         public Long getFeedbackId() { return feedbackId; }
         public void setFeedbackId(Long feedbackId) { this.feedbackId = feedbackId; }
-        
+
         public String getTitle() { return title; }
         public void setTitle(String title) { this.title = title; }
-        
+
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
-        
+
         public String getCategory() { return category; }
         public void setCategory(String category) { this.category = category; }
-        
+
         public String getStatus() { return status; }
         public void setStatus(String status) { this.status = status; }
-        
+
         public String getPriority() { return priority; }
         public void setPriority(String priority) { this.priority = priority; }
-        
+
         public String getAuthorName() { return authorName; }
         public void setAuthorName(String authorName) { this.authorName = authorName; }
-        
+
         public String getAuthorEmail() { return authorEmail; }
         public void setAuthorEmail(String authorEmail) { this.authorEmail = authorEmail; }
-        
+
         public boolean isAnonymous() { return anonymous; }
         public void setAnonymous(boolean anonymous) { this.anonymous = anonymous; }
-        
+
         public LocalDateTime getCreatedAt() { return createdAt; }
         public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-        
+
         public LocalDateTime getUpdatedAt() { return updatedAt; }
         public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-        
+
         public Integer getVotes() { return votes; }
         public void setVotes(Integer votes) { this.votes = votes; }
-        
+
         public Integer getCommentCount() { return commentCount; }
         public void setCommentCount(Integer commentCount) { this.commentCount = commentCount; }
-        
+
         public boolean isUserHasUpvoted() { return userHasUpvoted; }
         public void setUserHasUpvoted(boolean userHasUpvoted) { this.userHasUpvoted = userHasUpvoted; }
     }
 
-    // ALL authenticated users can see all feedback with author names
+
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<FeedbackResponse>> getAllFeedback(Authentication auth) {
         List<FeedbackEntity> feedbacks = feedbackRepository.findAll();
         List<FeedbackResponse> result = new ArrayList<>();
         String currentUser = auth.getName();
-        
-        // Optimizations: eliminate N+1 queries.
-        // 1. Fetch all users and index their full names by email
+
+
+
         List<UserEntity> allUsers = userRepository.findAll();
         Map<String, String> userEmailToNameMap = new HashMap<>();
         for (UserEntity user : allUsers) {
             userEmailToNameMap.put(user.getEmail(), user.getFullName());
         }
 
-        // 2. Fetch all comment counts grouped by feedbackId
+
         List<Object[]> commentCounts = commentRepository.countCommentsByFeedbackId();
         Map<Long, Integer> feedbackCommentCountMap = new HashMap<>();
         for (Object[] countObj : commentCounts) {
@@ -118,7 +118,7 @@ public class FeedbackController {
             Integer count = ((Number) countObj[1]).intValue();
             feedbackCommentCountMap.put(fId, count);
         }
-        
+
         for (FeedbackEntity feedback : feedbacks) {
             FeedbackResponse response = new FeedbackResponse();
             response.setFeedbackId(feedback.getFeedbackId());
@@ -132,8 +132,8 @@ public class FeedbackController {
             response.setUpdatedAt(feedback.getUpdatedAt());
             response.setVotes(feedback.getVotes() != null ? feedback.getVotes() : 0);
             response.setAnonymous(feedback.isAnonymous());
-            
-            // Get author name - show "Anonymous" if anonymous is true
+
+
             if (feedback.isAnonymous()) {
                 response.setAuthorName("Anonymous");
             } else {
@@ -148,17 +148,17 @@ public class FeedbackController {
                     response.setAuthorName("Anonymous");
                 }
             }
-            
-            // Check if current user has upvoted
+
+
             Set<String> upvotedUsers = feedback.getUpvotedUsers();
             response.setUserHasUpvoted(upvotedUsers != null && upvotedUsers.contains(currentUser));
-            
-            // Get comment count efficiently from map
+
+
             response.setCommentCount(feedbackCommentCountMap.getOrDefault(feedback.getFeedbackId(), 0));
-            
+
             result.add(response);
         }
-        
+
         return ResponseEntity.ok(result);
     }
 
@@ -167,16 +167,16 @@ public class FeedbackController {
         List<FeedbackEntity> feedbacks = feedbackRepository.findByAuthorEmail(auth.getName());
         List<FeedbackResponse> result = new ArrayList<>();
         String currentUser = auth.getName();
-        
-        // Optimizations: eliminate N+1 queries.
-        // 1. Fetch all users and index their full names by email
+
+
+
         List<UserEntity> allUsers = userRepository.findAll();
         Map<String, String> userEmailToNameMap = new HashMap<>();
         for (UserEntity user : allUsers) {
             userEmailToNameMap.put(user.getEmail(), user.getFullName());
         }
 
-        // 2. Fetch all comment counts grouped by feedbackId
+
         List<Object[]> commentCounts = commentRepository.countCommentsByFeedbackId();
         Map<Long, Integer> feedbackCommentCountMap = new HashMap<>();
         for (Object[] countObj : commentCounts) {
@@ -184,7 +184,7 @@ public class FeedbackController {
             Integer count = ((Number) countObj[1]).intValue();
             feedbackCommentCountMap.put(fId, count);
         }
-        
+
         for (FeedbackEntity feedback : feedbacks) {
             FeedbackResponse response = new FeedbackResponse();
             response.setFeedbackId(feedback.getFeedbackId());
@@ -198,7 +198,7 @@ public class FeedbackController {
             response.setUpdatedAt(feedback.getUpdatedAt());
             response.setVotes(feedback.getVotes() != null ? feedback.getVotes() : 0);
             response.setAnonymous(feedback.isAnonymous());
-            
+
             if (feedback.isAnonymous()) {
                 response.setAuthorName("Anonymous");
             } else {
@@ -213,16 +213,16 @@ public class FeedbackController {
                     response.setAuthorName("Anonymous");
                 }
             }
-            
+
             Set<String> upvotedUsers = feedback.getUpvotedUsers();
             response.setUserHasUpvoted(upvotedUsers != null && upvotedUsers.contains(currentUser));
-            
-            // Get comment count efficiently from map
+
+
             response.setCommentCount(feedbackCommentCountMap.getOrDefault(feedback.getFeedbackId(), 0));
 
             result.add(response);
         }
-        
+
         return ResponseEntity.ok(result);
     }
 
@@ -242,8 +242,8 @@ public class FeedbackController {
                     response.setUpdatedAt(feedback.getUpdatedAt());
                     response.setVotes(feedback.getVotes() != null ? feedback.getVotes() : 0);
                     response.setAnonymous(feedback.isAnonymous());
-                    
-                    // Get author name - show "Anonymous" if anonymous is true
+
+
                     if (feedback.isAnonymous()) {
                         response.setAuthorName("Anonymous");
                     } else {
@@ -259,11 +259,11 @@ public class FeedbackController {
                             response.setAuthorName("Anonymous");
                         }
                     }
-                    
-                    // Check if current user has upvoted
+
+
                     Set<String> upvotedUsers = feedback.getUpvotedUsers();
                     response.setUserHasUpvoted(upvotedUsers != null && upvotedUsers.contains(auth.getName()));
-                    
+
                     response.setCommentCount(commentRepository.countByFeedbackId(feedback.getFeedbackId()));
 
                     return ResponseEntity.ok(response);
@@ -313,7 +313,7 @@ public class FeedbackController {
                     existing.setStatus(newStatus);
                     existing.setUpdatedAt(LocalDateTime.now());
                     FeedbackEntity updated = feedbackRepository.save(existing);
-                    
+
                     if (!oldStatus.equals(newStatus)) {
                         NotificationEntity notification = new NotificationEntity();
                         notification.setUserEmail(existing.getAuthorEmail());
@@ -324,26 +324,26 @@ public class FeedbackController {
                         notification.setCreatedAt(LocalDateTime.now());
                         notificationRepository.save(notification);
                     }
-                    
+
                     return ResponseEntity.ok(updated);
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-    
-    // ========== COMMENTS ENDPOINTS ==========
-    
+
+
+
     @GetMapping("/{id}/comments")
     public ResponseEntity<List<Map<String, Object>>> getComments(@PathVariable Long id) {
         List<CommentEntity> comments = commentRepository.findByFeedbackIdOrderByCreatedAtDesc(id);
         List<Map<String, Object>> result = new ArrayList<>();
-        
+
         for (CommentEntity comment : comments) {
             Map<String, Object> commentMap = new HashMap<>();
             commentMap.put("id", comment.getId());
             commentMap.put("content", comment.getContent());
             commentMap.put("createdAt", comment.getCreatedAt());
             commentMap.put("isAnonymous", comment.isAnonymous());
-            
+
             if (comment.isAnonymous()) {
                 commentMap.put("authorName", "Anonymous");
                 commentMap.put("profilePicture", null);
@@ -363,13 +363,13 @@ public class FeedbackController {
                     commentMap.put("profilePicture", null);
                 }
             }
-            
+
             result.add(commentMap);
         }
-        
+
         return ResponseEntity.ok(result);
     }
-    
+
     @PostMapping("/{id}/comments")
     public ResponseEntity<CommentEntity> addComment(@PathVariable Long id, @RequestBody Map<String, String> payload, Authentication auth) {
         return feedbackRepository.findById(id)
@@ -381,8 +381,8 @@ public class FeedbackController {
                     comment.setCreatedAt(LocalDateTime.now());
                     comment.setAnonymous(Boolean.parseBoolean(payload.getOrDefault("anonymous", "false")));
                     CommentEntity saved = commentRepository.save(comment);
-                    
-                    // Only send notification if not anonymous
+
+
                     if (!comment.isAnonymous() && !feedback.getAuthorEmail().equals(auth.getName())) {
                         NotificationEntity notification = new NotificationEntity();
                         notification.setUserEmail(feedback.getAuthorEmail());
@@ -393,14 +393,14 @@ public class FeedbackController {
                         notification.setCreatedAt(LocalDateTime.now());
                         notificationRepository.save(notification);
                     }
-                    
+
                     return ResponseEntity.ok(saved);
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-    
-    // ========== UPVOTE ENDPOINTS ==========
-    
+
+
+
     @PostMapping("/{id}/upvote")
     public ResponseEntity<?> toggleUpvote(@PathVariable Long id, Authentication auth) {
         return feedbackRepository.findById(id)
@@ -410,15 +410,15 @@ public class FeedbackController {
                     if (upvotedUsers == null) {
                         upvotedUsers = new HashSet<>();
                     }
-                    
+
                     int currentVotes = feedback.getVotes() != null ? feedback.getVotes() : 0;
-                    
+
                     if (upvotedUsers.contains(userEmail)) {
                         upvotedUsers.remove(userEmail);
                         feedback.setVotes(currentVotes - 1);
                         feedback.setUpvotedUsers(upvotedUsers);
                         feedbackRepository.save(feedback);
-                        
+
                         Map<String, Object> response = new HashMap<>();
                         response.put("message", "Upvote removed successfully");
                         response.put("votes", feedback.getVotes());
@@ -429,7 +429,7 @@ public class FeedbackController {
                         feedback.setVotes(currentVotes + 1);
                         feedback.setUpvotedUsers(upvotedUsers);
                         feedbackRepository.save(feedback);
-                        
+
                         Map<String, Object> response = new HashMap<>();
                         response.put("message", "Upvoted successfully");
                         response.put("votes", feedback.getVotes());
@@ -439,7 +439,7 @@ public class FeedbackController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     @GetMapping("/{id}/has-upvoted")
     public ResponseEntity<?> hasUserUpvoted(@PathVariable Long id, Authentication auth) {
         return feedbackRepository.findById(id)
@@ -453,51 +453,51 @@ public class FeedbackController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // ========== DASHBOARD DATA ENDPOINT ==========
-    
+
+
     @GetMapping("/dashboard-data")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> getDashboardData(Authentication auth) {
         Map<String, Object> dashboardData = new HashMap<>();
-        
-        // 1. Get stats
+
+
         Map<String, Object> stats = getStats();
         dashboardData.put("stats", stats);
-        
-        // 2. Get all feedback with details
+
+
         List<Map<String, Object>> feedbacks = getAllFeedbackWithDetails(auth);
         dashboardData.put("feedbacks", feedbacks);
-        
+
         return ResponseEntity.ok(dashboardData);
     }
-    
-    // Helper method for stats
+
+
     private Map<String, Object> getStats() {
         Map<String, Object> stats = new HashMap<>();
         long total = feedbackRepository.count();
         long pending = feedbackRepository.countByStatusIgnoreCase("PENDING");
         long inReview = feedbackRepository.countByStatusIgnoreCase("IN_REVIEW");
         long resolved = feedbackRepository.countByStatusIgnoreCase("RESOLVED");
-        
+
         stats.put("totalFeedback", total);
         stats.put("pending", pending);
         stats.put("inReview", inReview);
         stats.put("resolved", resolved);
-        
+
         return stats;
     }
-    
-    // Helper method for feedback with all details
+
+
     private List<Map<String, Object>> getAllFeedbackWithDetails(Authentication auth) {
         List<FeedbackEntity> feedbacks = feedbackRepository.findAll();
         List<Map<String, Object>> result = new ArrayList<>();
         String currentUser = auth.getName();
-        
+
         for (FeedbackEntity feedback : feedbacks) {
             Map<String, Object> feedbackMap = new HashMap<>();
             Long feedbackId = feedback.getFeedbackId();
-            
-            // Basic info
+
+
             feedbackMap.put("feedbackId", feedbackId);
             feedbackMap.put("title", feedback.getTitle());
             feedbackMap.put("description", feedback.getDescription());
@@ -508,8 +508,8 @@ public class FeedbackController {
             feedbackMap.put("createdAt", feedback.getCreatedAt());
             feedbackMap.put("votes", feedback.getVotes() != null ? feedback.getVotes() : 0);
             feedbackMap.put("anonymous", feedback.isAnonymous());
-            
-            // Author name (or Anonymous)
+
+
             if (feedback.isAnonymous()) {
                 feedbackMap.put("authorName", "Anonymous");
             } else {
@@ -525,21 +525,21 @@ public class FeedbackController {
                     feedbackMap.put("authorName", "Anonymous");
                 }
             }
-            
-            // User has upvoted?
+
+
             Set<String> upvotedUsers = feedback.getUpvotedUsers();
             feedbackMap.put("userHasUpvoted", upvotedUsers != null && upvotedUsers.contains(currentUser));
-            
-            // Comment count
+
+
             int commentCount = commentRepository.countByFeedbackId(feedbackId);
             feedbackMap.put("commentCount", commentCount);
-            
+
             result.add(feedbackMap);
         }
-        
-        // Sort by votes (highest first)
+
+
         result.sort((a, b) -> ((Integer)b.get("votes")) - ((Integer)a.get("votes")));
-        
+
         return result;
     }
 }
