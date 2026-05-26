@@ -134,7 +134,7 @@ const ViewFeedback = () => {
           {isAdmin ? 'All Feedback (Admin View)' : isFaculty ? 'All Student Feedback (Faculty View)' : 'My Feedbacks'}
         </h1>
 
-        {/* Stats Summary */}
+       
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-3 text-center">
             <div className="text-2xl font-bold text-blue-600">{feedbackList.length}</div>
@@ -160,7 +160,7 @@ const ViewFeedback = () => {
           </div>
         </div>
 
-        {/* Search Bar - Only for Faculty and Admin */}
+        
         {(isFaculty || isAdmin) && (
           <div className="mb-6">
             <div className="relative">
@@ -188,7 +188,6 @@ const ViewFeedback = () => {
           </div>
         )}
 
-        {/* Filters */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
           <div className="flex gap-2 flex-wrap">
             <button
@@ -269,19 +268,19 @@ const ViewFeedback = () => {
                     <p className="text-gray-600 mt-1">{feedback.description}</p>
                     <div className="flex gap-2 mt-3 flex-wrap">
                       <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
-                        📁 {feedback.category}
+                         {feedback.category}
                       </span>
                       <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
-                        ⚡ Priority: {feedback.priority || 'MEDIUM'}
+                        Priority: {feedback.priority || 'MEDIUM'}
                       </span>
                       <span className="text-xs text-gray-400">
-                        👤 By: {getAuthorDisplay(feedback)}
+                        By: {getAuthorDisplay(feedback)}
                       </span>
                       <span className="text-xs text-gray-400">
-                        📅 {new Date(feedback.createdAt).toLocaleDateString()}
+                         {new Date(feedback.createdAt).toLocaleDateString()}
                       </span>
                       <span className="text-xs text-gray-400">
-                        👍 {feedback.votes || 0} votes
+                         {feedback.votes || 0} votes
                       </span>
                     </div>
                   </div>
@@ -294,7 +293,7 @@ const ViewFeedback = () => {
                       View Details
                     </button>
 
-                    {/* Report button for Faculty ONLY (not admin) */}
+                   
                     {isFaculty && !isAdmin && (
                       <ReportButton feedbackId={feedback.feedbackId || feedback.id} feedbackTitle={feedback.title} />
                     )}

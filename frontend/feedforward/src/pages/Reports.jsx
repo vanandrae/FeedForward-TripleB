@@ -147,7 +147,7 @@ const Reports = () => {
       <div className="max-w-6xl mx-auto px-4">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Reports & Analytics</h1>
 
-        {/* Stats Overview */}
+       
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-gray-500 text-sm">Total Feedback</div>
@@ -173,7 +173,7 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* Report Generator */}
+       
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Generate Report</h2>
 
@@ -213,7 +213,7 @@ const Reports = () => {
           </button>
         </div>
 
-        {/* Recent Feedback Preview */}
+       
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="font-semibold text-gray-800 mb-4">Recent Feedback Preview</h3>
           <div className="overflow-x-auto">

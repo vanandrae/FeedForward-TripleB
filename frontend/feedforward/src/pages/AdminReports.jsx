@@ -190,7 +190,7 @@ const AdminReports = () => {
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            📋 Reports ({reports.filter(r => r.status === 'pending').length})
+          Reports ({reports.filter(r => r.status === 'pending').length})
           </button>
           <button
             onClick={() => setSelectedTab('users')}
@@ -200,7 +200,7 @@ const AdminReports = () => {
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            👥 User Management ({users.length})
+            User Management ({users.length})
           </button>
           <button
             onClick={() => setSelectedTab('feedback')}
@@ -210,11 +210,11 @@ const AdminReports = () => {
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            📝 All Feedback ({allFeedback.length})
+            All Feedback ({allFeedback.length})
           </button>
         </div>
 
-        {/* Reports Tab */}
+      
         {selectedTab === 'reports' && (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Reported Content</h2>
@@ -265,7 +265,7 @@ const AdminReports = () => {
           </div>
         )}
 
-        {/* Users Tab - User Management */}
+       
         {selectedTab === 'users' && (
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="overflow-x-auto">
@@ -350,7 +350,6 @@ const AdminReports = () => {
           </div>
         )}
 
-        {/* All Feedback Tab */}
         {selectedTab === 'feedback' && (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">All Feedback Submissions</h2>

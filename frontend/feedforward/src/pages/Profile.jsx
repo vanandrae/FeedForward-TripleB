@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -36,7 +35,8 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    const isNotAuthenticated = !isAuthenticated;
+    if (isNotAuthenticated) {
       navigate('/login');
       return;
     }
@@ -49,7 +49,6 @@ const Profile = () => {
     setError('');
     try {
       const response = await HttpService.get(API_ENDPOINTS.GET_USER_PROFILE);
-      console.log('Profile response:', response);
 
       setProfile({
         userId: response.userId || response.id || '',
@@ -69,7 +68,8 @@ const Profile = () => {
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
-      setError(error.message || 'Failed to load profile');
+      const errorMessage = error.message || 'Failed to load profile';
+      setError(errorMessage);
     } finally {
       setFetching(false);
     }
@@ -82,10 +82,22 @@ const Profile = () => {
 
       const stats = {
         total: feedbacks.length,
-        resolved: feedbacks.filter(f => f.status?.toUpperCase() === 'RESOLVED').length,
-        pending: feedbacks.filter(f => f.status?.toUpperCase() === 'PENDING').length,
-        inReview: feedbacks.filter(f => f.status?.toUpperCase() === 'IN_REVIEW').length
+        resolved: 0,
+        pending: 0,
+        inReview: 0
       };
+
+      for (let i = 0; i < feedbacks.length; i++) {
+        const f = feedbacks[i];
+        const status = f.status?.toUpperCase();
+        if (status === 'RESOLVED') {
+          stats.resolved = stats.resolved + 1;
+        } else if (status === 'PENDING') {
+          stats.pending = stats.pending + 1;
+        } else if (status === 'IN_REVIEW') {
+          stats.inReview = stats.inReview + 1;
+        }
+      }
 
       setFeedbackStats(stats);
     } catch (error) {
@@ -104,27 +116,28 @@ const Profile = () => {
         department: formData.department
       };
 
-
-      if (formData.newPassword) {
-
-        if (!formData.currentPassword) {
+      const hasNewPassword = formData.newPassword !== '';
+      if (hasNewPassword) {
+        const noCurrentPassword = !formData.currentPassword;
+        if (noCurrentPassword) {
           setError('Please enter your current password to change password');
           setLoading(false);
           return;
         }
 
-        if (formData.newPassword.length < 6) {
+        const isPasswordTooShort = formData.newPassword.length < 6;
+        if (isPasswordTooShort) {
           setError('New password must be at least 6 characters');
           setLoading(false);
           return;
         }
 
-        if (formData.newPassword !== formData.confirmPassword) {
+        const passwordsDoNotMatch = formData.newPassword !== formData.confirmPassword;
+        if (passwordsDoNotMatch) {
           setError('New passwords do not match');
           setLoading(false);
           return;
         }
-
 
         updateData.currentPassword = formData.currentPassword;
         updateData.newPassword = formData.newPassword;
@@ -132,7 +145,8 @@ const Profile = () => {
 
       const response = await HttpService.put(API_ENDPOINTS.UPDATE_USER_PROFILE, updateData);
 
-      if (response.error) {
+      const hasError = response.error;
+      if (hasError) {
         setError(response.error);
         setLoading(false);
         return;
@@ -149,16 +163,17 @@ const Profile = () => {
       setEditing(false);
       await fetchProfile();
 
-      setFormData(prev => ({
-        ...prev,
+      setFormData({
+        ...formData,
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
-      }));
+      });
 
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
-      setError(error.response?.data?.message || error.message || 'Failed to update profile');
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to update profile';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -183,37 +198,90 @@ const Profile = () => {
   };
 
   const getRoleBadgeColor = (role) => {
-    switch(role?.toLowerCase()) {
-      case 'admin': return 'bg-purple-100 text-purple-800';
-      case 'faculty': return 'bg-blue-100 text-blue-800';
-      case 'student': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+    const roleLower = role?.toLowerCase();
+    if (roleLower === 'admin') {
+      return 'bg-purple-100 text-purple-800';
     }
+    if (roleLower === 'faculty') {
+      return 'bg-blue-100 text-blue-800';
+    }
+    if (roleLower === 'student') {
+      return 'bg-green-100 text-green-800';
+    }
+    return 'bg-gray-100 text-gray-800';
   };
 
   const getRoleIcon = (role) => {
-    switch(role?.toLowerCase()) {
-      case 'admin': return '👑';
-      case 'faculty': return '👨‍🏫';
-      case 'student': return '🎓';
-      default: return '👤';
+    const roleLower = role?.toLowerCase();
+    if (roleLower === 'admin') {
+      return 'Crown';
     }
+    if (roleLower === 'faculty') {
+      return 'Teacher';
+    }
+    if (roleLower === 'student') {
+      return 'Student';
+    }
+    return 'User';
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    const hasNoDate = !dateString;
+    if (hasNoDate) {
+      return 'N/A';
+    }
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = date.toLocaleString('en-US', { month: 'long' });
+      const day = date.getDate();
+      return month + ' ' + day + ', ' + year;
     } catch {
       return 'N/A';
     }
   };
 
-  if (fetching) {
+  const getInitials = () => {
+    const name = profile.fullName;
+    if (!name) {
+      return 'U';
+    }
+    return name.charAt(0).toUpperCase();
+  };
+
+  const getDepartmentDisplay = () => {
+    const dept = profile.department;
+    if (!dept || dept === 'Not specified') {
+      return 'Not specified';
+    }
+    return dept;
+  };
+
+  const getUserIdDisplay = () => {
+    const id = profile.userId;
+    if (!id) {
+      return 'N/A';
+    }
+    return '#' + id;
+  };
+
+  const getRoleDisplay = () => {
+    const role = profile.role;
+    if (!role) {
+      return 'Student';
+    }
+    return role.charAt(0).toUpperCase() + role.slice(1);
+  };
+
+  const getButtonText = () => {
+    if (loading) {
+      return 'Saving...';
+    }
+    return 'Save Changes';
+  };
+
+  const isFetching = fetching;
+  if (isFetching) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -224,15 +292,17 @@ const Profile = () => {
     );
   }
 
+  const hasSuccess = success !== '';
+  const hasError = error !== '';
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {/* Header with Gradient */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-4xl font-bold backdrop-blur-sm">
-                {profile.fullName ? profile.fullName.charAt(0).toUpperCase() : 'U'}
+                {getInitials()}
               </div>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold">{profile.fullName || 'User'}</h1>
@@ -240,37 +310,39 @@ const Profile = () => {
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(profile.role)} bg-white/20 backdrop-blur-sm`}>
                     <span>{getRoleIcon(profile.role)}</span>
-                    <span>{profile.role?.toUpperCase() || 'STUDENT'}</span>
+                    <span>{getRoleDisplay()}</span>
                   </span>
-                  {profile.department && profile.department !== 'Not specified' && (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm text-white">
-                      <span>🏢</span>
-                      <span>{profile.department}</span>
-                    </span>
-                  )}
+                  {(() => {
+                    const hasDepartment = profile.department && profile.department !== 'Not specified';
+                    if (hasDepartment) {
+                      return (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm text-white">
+                          <span>Department</span>
+                          <span>{profile.department}</span>
+                        </span>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Content */}
           <div className="p-6">
-            {/* Success Message */}
-            {success && (
+            {hasSuccess && (
               <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg border-l-4 border-green-500">
-                ✅ {success}
+                {success}
               </div>
             )}
 
-            {/* Error Message */}
-            {error && (
+            {hasError && (
               <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg border-l-4 border-red-500">
-                ❌ {error}
+                {error}
               </div>
             )}
 
             {!editing ? (
-
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="border-b pb-3">
@@ -284,12 +356,12 @@ const Profile = () => {
                   <div className="border-b pb-3">
                     <label className="block text-gray-500 text-sm mb-1">Role</label>
                     <p className="text-gray-800 font-medium capitalize flex items-center gap-2">
-                      {getRoleIcon(profile.role)} {profile.role || 'Student'}
+                      {getRoleIcon(profile.role)} {getRoleDisplay()}
                     </p>
                   </div>
                   <div className="border-b pb-3">
                     <label className="block text-gray-500 text-sm mb-1">Department</label>
-                    <p className="text-gray-800 font-medium">{profile.department || 'Not specified'}</p>
+                    <p className="text-gray-800 font-medium">{getDepartmentDisplay()}</p>
                   </div>
                   <div className="border-b pb-3">
                     <label className="block text-gray-500 text-sm mb-1">Member Since</label>
@@ -297,7 +369,7 @@ const Profile = () => {
                   </div>
                   <div className="border-b pb-3">
                     <label className="block text-gray-500 text-sm mb-1">User ID</label>
-                    <p className="text-gray-800 font-mono text-sm">#{profile.userId || 'N/A'}</p>
+                    <p className="text-gray-800 font-mono text-sm">{getUserIdDisplay()}</p>
                   </div>
                 </div>
 
@@ -317,7 +389,6 @@ const Profile = () => {
                 </div>
               </div>
             ) : (
-
               <div className="space-y-4">
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Full Name</label>
@@ -337,13 +408,13 @@ const Profile = () => {
                     value={formData.department}
                     onChange={(e) => setFormData({...formData, department: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., Computer Science, Engineering, Business"
+                    placeholder="Computer Science, Engineering, Business"
                   />
                 </div>
 
                 <div className="border-t pt-4 mt-4">
                   <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    🔒 Change Password
+                    Change Password
                   </h3>
 
                   <div className="space-y-3">
@@ -387,7 +458,7 @@ const Profile = () => {
                     disabled={loading}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
                   >
-                    {loading ? '⏳ Saving...' : '💾 Save Changes'}
+                    {getButtonText()}
                   </button>
                   <button
                     onClick={handleCancel}
@@ -401,32 +472,37 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Statistics Section - Only show for students and admins (not faculty) */}
-        {!isFaculty && (
-          <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              Account Statistics
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg hover:shadow-md transition">
-                <div className="text-3xl font-bold text-blue-600">{feedbackStats.total}</div>
-                <div className="text-sm text-gray-600 mt-1">Total Feedback</div>
+        {(() => {
+          const isNotFaculty = !isFaculty;
+          if (isNotFaculty) {
+            return (
+              <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  Account Statistics
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg hover:shadow-md transition">
+                    <div className="text-3xl font-bold text-blue-600">{feedbackStats.total}</div>
+                    <div className="text-sm text-gray-600 mt-1">Total Feedback</div>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg hover:shadow-md transition">
+                    <div className="text-3xl font-bold text-green-600">{feedbackStats.resolved}</div>
+                    <div className="text-sm text-gray-600 mt-1">Resolved</div>
+                  </div>
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg hover:shadow-md transition">
+                    <div className="text-3xl font-bold text-yellow-600">{feedbackStats.pending}</div>
+                    <div className="text-sm text-gray-600 mt-1">Pending</div>
+                  </div>
+                  <div className="text-center p-4 bg-purple-50 rounded-lg hover:shadow-md transition">
+                    <div className="text-3xl font-bold text-purple-600">{feedbackStats.inReview}</div>
+                    <div className="text-sm text-gray-600 mt-1">In Review</div>
+                  </div>
+                </div>
               </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg hover:shadow-md transition">
-                <div className="text-3xl font-bold text-green-600">{feedbackStats.resolved}</div>
-                <div className="text-sm text-gray-600 mt-1">Resolved</div>
-              </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg hover:shadow-md transition">
-                <div className="text-3xl font-bold text-yellow-600">{feedbackStats.pending}</div>
-                <div className="text-sm text-gray-600 mt-1">Pending</div>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg hover:shadow-md transition">
-                <div className="text-3xl font-bold text-purple-600">{feedbackStats.inReview}</div>
-                <div className="text-sm text-gray-600 mt-1">In Review</div>
-              </div>
-            </div>
-          </div>
-        )}
+            );
+          }
+          return null;
+        })()}
       </div>
     </div>
   );

@@ -1,65 +1,64 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import HttpService from '../services/HttpService';
 
 const NotificationBell = () => {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-
-
-  useEffect(() => {
-    fetchNotifications();
-    fetchUnreadCount();
-
-
-    const interval = setInterval(() => {
-      fetchNotifications();
-      fetchUnreadCount();
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchUnreadCount = async () => {
-  try {
-    const response = await HttpService.get('/notifications/unread-count');
-    setUnreadCount(response.count);
-  } catch (error) {
-    console.error('Error fetching unread count:', error);
-  }
-};
+  const dropdownRef = useRef(null);
 
   const fetchNotifications = async () => {
     try {
       const response = await HttpService.get('/notifications');
-      setNotifications(response);
-      setUnreadCount(response.filter(n => !n.read).length);
+      const data = Array.isArray(response) ? response : [];
+      setNotifications(data);
+      setUnreadCount(data.filter(n => !n.read).length);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
-
+      console.error(error);
     }
   };
 
-  const markAsRead = async (id) => {
+  useEffect(() => {
+    fetchNotifications();
+
+    const interval = setInterval(fetchNotifications, 10000);
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const markAsRead = async (id, e) => {
+    e.stopPropagation();
     try {
       await HttpService.put(`/notifications/${id}/read`, {});
       fetchNotifications();
     } catch (error) {
-      console.error('Error marking as read:', error);
+      console.error(error);
     }
   };
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = async (e) => {
+    e.stopPropagation();
     try {
       await HttpService.put('/notifications/read-all', {});
       fetchNotifications();
     } catch (error) {
-      console.error('Error marking all as read:', error);
+      console.error(error);
     }
   };
 
   const getNotificationIcon = (type) => {
-    switch(type) {
+    switch (type) {
       case 'status_change': return '🔄';
       case 'comment': return '💬';
       case 'feedback_resolved': return '✅';
@@ -69,64 +68,56 @@ const NotificationBell = () => {
   };
 
   return (
-    <div className="relative">
+    <div className="notification-container" ref={dropdownRef}>
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className="relative text-white hover:bg-white/10 p-2 rounded-full transition-colors"
+        className="notification-button"
+        aria-label="Toggle notifications"
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        <svg className="bell-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0A3A66" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center animate-pulse">
+          <span className="notification-badge">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {showDropdown && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
-          <div className="p-3 border-b flex justify-between items-center sticky top-0 bg-white">
-            <h3 className="font-semibold text-gray-800">Notifications</h3>
+        <div className="notification-dropdown">
+          <div className="notification-header">
+            <h3>Notifications</h3>
             {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="text-xs text-blue-600 hover:text-blue-700"
-              >
+              <button onClick={markAllAsRead} className="mark-all-read">
                 Mark all as read
               </button>
             )}
           </div>
 
           {notifications.length === 0 ? (
-            <div className="p-6 text-center text-gray-500">
-              <div className="text-4xl mb-2">🔔</div>
+            <div className="notification-empty">
+              <div className="empty-icon">🔔</div>
               <p>No notifications yet</p>
             </div>
           ) : (
-            <div>
+            <div className="notification-list">
               {notifications.map(notif => (
                 <div
                   key={notif.id}
-                  onClick={() => markAsRead(notif.id)}
-                  className={`p-3 border-b hover:bg-gray-50 cursor-pointer transition ${
-                    !notif.read ? 'bg-blue-50' : ''
-                  }`}
+                  onClick={(e) => markAsRead(notif.id, e)}
+                  className={`notification-item ${!notif.read ? 'unread' : ''}`}
                 >
-                  <div className="flex items-start gap-2">
-                    <div className="text-xl">{getNotificationIcon(notif.type)}</div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-800">{notif.title}</p>
-                      <p className="text-xs text-gray-500 mt-1">{notif.message}</p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {new Date(notif.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                    {!notif.read && (
-                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                    )}
+                  <div className="notification-icon">{getNotificationIcon(notif.type)}</div>
+                  <div className="notification-content">
+                    <p className="notification-title">{notif.title}</p>
+                    <p className="notification-message">{notif.message}</p>
+                    <p className="notification-time">
+                      {new Date(notif.createdAt).toLocaleString()}
+                    </p>
                   </div>
+                  {!notif.read && <div className="unread-dot"></div>}
                 </div>
               ))}
             </div>

@@ -31,10 +31,8 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-
   const fetchDashboardData = async () => {
     try {
-
       const [statsResponse, feedbackResponse] = await Promise.all([
         HttpService.get(API_ENDPOINTS.GET_DASHBOARD_STATS),
         HttpService.get(API_ENDPOINTS.GET_ALL_FEEDBACK)
@@ -43,19 +41,28 @@ const Dashboard = () => {
       setStats(statsResponse);
       const feedbacks = feedbackResponse || [];
 
-
-      const sortedFeedbacks = [...feedbacks].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+      const sortedFeedbacks = [...feedbacks].sort((a, b) => {
+        const votesA = a.votes || 0;
+        const votesB = b.votes || 0;
+        if (votesB > votesA) {
+          return 1;
+        }
+        if (votesB < votesA) {
+          return -1;
+        }
+        return 0;
+      });
       setAllFeedback(sortedFeedbacks);
-
 
       const upvoteStatus = {};
       const commentCountMap = {};
 
-      sortedFeedbacks.forEach(item => {
+      for (let i = 0; i < sortedFeedbacks.length; i++) {
+        const item = sortedFeedbacks[i];
         const id = item.feedbackId || item.id;
         upvoteStatus[id] = item.userHasUpvoted || false;
         commentCountMap[id] = item.commentCount || 0;
-      });
+      }
 
       setUserUpvotes(upvoteStatus);
       setCommentCounts(commentCountMap);
@@ -67,38 +74,60 @@ const Dashboard = () => {
     }
   };
 
-
   const applyFilters = useCallback(() => {
     let filtered = [...allFeedback];
 
-    if (searchTerm.trim() !== '') {
+    const isSearching = searchTerm.trim() !== '';
+    if (isSearching) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(item =>
-        item.title?.toLowerCase().includes(term) ||
-        item.description?.toLowerCase().includes(term) ||
-        item.authorEmail?.toLowerCase().includes(term)
-      );
+      filtered = filtered.filter((item) => {
+        const titleMatch = item.title?.toLowerCase().includes(term);
+        const descriptionMatch = item.description?.toLowerCase().includes(term);
+        const authorMatch = item.authorEmail?.toLowerCase().includes(term);
+        return titleMatch || descriptionMatch || authorMatch;
+      });
     }
 
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(item =>
-        item.status?.toLowerCase() === statusFilter.toLowerCase()
-      );
+    const isStatusFiltering = statusFilter !== 'all';
+    if (isStatusFiltering) {
+      filtered = filtered.filter((item) => {
+        const itemStatus = item.status?.toLowerCase();
+        const filterStatus = statusFilter.toLowerCase();
+        return itemStatus === filterStatus;
+      });
     }
 
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(item =>
-        item.category?.toLowerCase() === categoryFilter.toLowerCase()
-      );
+    const isCategoryFiltering = categoryFilter !== 'all';
+    if (isCategoryFiltering) {
+      filtered = filtered.filter((item) => {
+        const itemCategory = item.category?.toLowerCase();
+        const filterCategory = categoryFilter.toLowerCase();
+        return itemCategory === filterCategory;
+      });
     }
 
-    return filtered.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+    const sortedFiltered = filtered.sort((a, b) => {
+      const votesA = a.votes || 0;
+      const votesB = b.votes || 0;
+      if (votesB > votesA) {
+        return 1;
+      }
+      if (votesB < votesA) {
+        return -1;
+      }
+      return 0;
+    });
+
+    return sortedFiltered;
   }, [allFeedback, searchTerm, statusFilter, categoryFilter]);
 
   const filteredFeedback = useMemo(() => applyFilters(), [applyFilters]);
 
   const handleAddComment = async (feedbackId) => {
-    if (!commentText.trim() || submitting) return;
+    const isCommentEmpty = !commentText.trim();
+    if (isCommentEmpty || submitting) {
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -106,9 +135,11 @@ const Dashboard = () => {
       setCommentText('');
       setShowCommentBox(null);
 
-
       const response = await HttpService.get(`/feedback/${feedbackId}/comments`);
-      setCommentCounts(prev => ({ ...prev, [feedbackId]: response?.length || 0 }));
+      const commentCount = response?.length || 0;
+      const updatedCommentCounts = { ...commentCounts };
+      updatedCommentCounts[feedbackId] = commentCount;
+      setCommentCounts(updatedCommentCounts);
 
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -119,35 +150,64 @@ const Dashboard = () => {
   };
 
   const handleToggleUpvote = async (feedbackId) => {
-    if (upvoting === feedbackId) return;
+    const isUpvoting = upvoting === feedbackId;
+    if (isUpvoting) {
+      return;
+    }
 
     setUpvoting(feedbackId);
     const wasUpvoted = userUpvotes[feedbackId];
 
+    const updatedUserUpvotes = { ...userUpvotes };
+    updatedUserUpvotes[feedbackId] = !wasUpvoted;
+    setUserUpvotes(updatedUserUpvotes);
 
-    setUserUpvotes(prev => ({ ...prev, [feedbackId]: !wasUpvoted }));
-    setAllFeedback(prev => prev.map(item =>
-      (item.feedbackId || item.id) === feedbackId
-        ? { ...item, votes: (item.votes || 0) + (wasUpvoted ? -1 : 1) }
-        : item
-    ));
+    const updatedFeedbackList = allFeedback.map((item) => {
+      const itemId = item.feedbackId || item.id;
+      if (itemId === feedbackId) {
+        const currentVotes = item.votes || 0;
+        const newVotes = wasUpvoted ? currentVotes - 1 : currentVotes + 1;
+        const updatedItem = { ...item, votes: newVotes };
+        return updatedItem;
+      }
+      return item;
+    });
+    setAllFeedback(updatedFeedbackList);
 
     try {
       const response = await HttpService.post(`/feedback/${feedbackId}/upvote`, {});
-      setUserUpvotes(prev => ({ ...prev, [feedbackId]: response.upvoted }));
-      setAllFeedback(prev => prev.map(item =>
-        (item.feedbackId || item.id) === feedbackId
-          ? { ...item, votes: response.votes }
-          : item
-      ));
+      const finalUpvoteStatus = response.upvoted;
+      const finalVotes = response.votes;
+      
+      const finalUserUpvotes = { ...userUpvotes };
+      finalUserUpvotes[feedbackId] = finalUpvoteStatus;
+      setUserUpvotes(finalUserUpvotes);
+      
+      const finalFeedbackList = allFeedback.map((item) => {
+        const itemId = item.feedbackId || item.id;
+        if (itemId === feedbackId) {
+          const updatedItem = { ...item, votes: finalVotes };
+          return updatedItem;
+        }
+        return item;
+      });
+      setAllFeedback(finalFeedbackList);
     } catch (error) {
-
-      setUserUpvotes(prev => ({ ...prev, [feedbackId]: wasUpvoted }));
-      setAllFeedback(prev => prev.map(item =>
-        (item.feedbackId || item.id) === feedbackId
-          ? { ...item, votes: (item.votes || 0) + (wasUpvoted ? 1 : -1) }
-          : item
-      ));
+      const revertedUserUpvotes = { ...userUpvotes };
+      revertedUserUpvotes[feedbackId] = wasUpvoted;
+      setUserUpvotes(revertedUserUpvotes);
+      
+      const revertedFeedbackList = allFeedback.map((item) => {
+        const itemId = item.feedbackId || item.id;
+        if (itemId === feedbackId) {
+          const currentVotes = item.votes || 0;
+          const revertedVotes = wasUpvoted ? currentVotes + 1 : currentVotes - 1;
+          const revertedItem = { ...item, votes: revertedVotes };
+          return revertedItem;
+        }
+        return item;
+      });
+      setAllFeedback(revertedFeedbackList);
       console.error('Error toggling upvote:', error);
     } finally {
       setUpvoting(null);
@@ -155,21 +215,17 @@ const Dashboard = () => {
   };
 
   const getStatusColor = useCallback((status) => {
-    switch(status?.toLowerCase()) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'in_review': return 'bg-blue-100 text-blue-800';
-      case 'resolved': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+    const statusLower = status?.toLowerCase();
+    if (statusLower === 'pending') {
+      return 'bg-yellow-100 text-yellow-800';
     }
-  }, []);
-
-  const getCategoryIcon = useCallback((category) => {
-    switch(category?.toLowerCase()) {
-      case 'bug': return '🐛';
-      case 'feature': return '✨';
-      case 'improvement': return '📈';
-      default: return '💬';
+    if (statusLower === 'in_review') {
+      return 'bg-blue-100 text-blue-800';
     }
+    if (statusLower === 'resolved') {
+      return 'bg-green-100 text-green-800';
+    }
+    return 'bg-gray-100 text-gray-800';
   }, []);
 
   const clearFilters = () => {
@@ -182,7 +238,30 @@ const Dashboard = () => {
     navigate(`/feedback/${feedbackId}`);
   };
 
-  if (loading) {
+  const getWelcomeMessage = () => {
+    if (isStudent) {
+      return 'See what others are saying. Upvote and comment on feedback!';
+    }
+    return 'Track and manage all feedback submissions';
+  };
+
+  const getButtonUpvoteText = (feedbackItem, hasUpvoted, isUpvotingFeedback) => {
+    const votes = feedbackItem.votes || 0;
+    if (isUpvotingFeedback) {
+      return '... ' + votes;
+    }
+    return votes;
+  };
+
+  const getCommentButtonText = (commentCount) => {
+    if (commentCount === 1) {
+      return commentCount + ' Comment';
+    }
+    return commentCount + ' Comments';
+  };
+
+  const isLoading = loading;
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -194,19 +273,18 @@ const Dashboard = () => {
   }
 
   const displayFeedback = filteredFeedback.slice(0, 20);
+  const hasNoFeedback = displayFeedback.length === 0;
 
   return (
     <div className="dashboard-container">
       <div className="dashboard-content">
-        {/* Welcome Banner */}
         <div className="welcome-banner">
-          <h2 className="welcome-title">Welcome, {user?.fullName || 'User'}! 👋</h2>
+          <h2 className="welcome-title">Welcome, {user?.fullName || 'User'}!</h2>
           <p className="welcome-text">
-            {isStudent ? "See what others are saying. Upvote and comment on feedback!" : "Track and manage all feedback submissions"}
+            {getWelcomeMessage()}
           </p>
         </div>
 
-        {/* Stats Cards */}
         <div className="stats-container">
           <div className="stat-card bg-gradient-to-r from-indigo-500 to-purple-600">
             <div className="stat-number">{stats.totalFeedback}</div>
@@ -230,14 +308,15 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
         <div className="quick-actions">
           <h3 className="actions-title">Quick Actions</h3>
           <div className="actions-container">
             {isStudent && (
               <div onClick={() => navigate('/submit-feedback')} className="action-card">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center text-xl">📝</div>
+                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <span className="text-xl">+</span>
+                  </div>
                   <div>
                     <h4 className="font-semibold">Submit Feedback</h4>
                     <p className="text-gray-500 text-sm">Share your thoughts</p>
@@ -247,7 +326,9 @@ const Dashboard = () => {
             )}
             <div onClick={() => navigate('/feedback')} className="action-card">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center text-xl">👁️</div>
+                <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+                  <span className="text-xl">👁</span>
+                </div>
                 <div>
                   <h4 className="font-semibold">View All Feedback</h4>
                   <p className="text-gray-500 text-sm">See all submissions</p>
@@ -257,13 +338,12 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Search and Filters */}
         <div className="px-6 mb-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-3">Community Feedback Feed</h3>
 
           <input
             type="text"
-            placeholder="🔍 Search by title, description, or author email..."
+            placeholder="Search by title, description, or author email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 border rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -285,18 +365,23 @@ const Dashboard = () => {
               <option value="feedback">General Feedback</option>
             </select>
 
-            {(searchTerm || statusFilter !== 'all' || categoryFilter !== 'all') && (
-              <button onClick={clearFilters} className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm">
-                Clear Filters ✕
-              </button>
-            )}
+            {(() => {
+              const hasActiveFilters = searchTerm || statusFilter !== 'all' || categoryFilter !== 'all';
+              if (hasActiveFilters) {
+                return (
+                  <button onClick={clearFilters} className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm">
+                    Clear Filters X
+                  </button>
+                );
+              }
+              return null;
+            })()}
           </div>
 
           <p className="text-sm text-gray-500">Showing {displayFeedback.length} of {allFeedback.length} feedback items (sorted by most upvotes)</p>
         </div>
 
-        {/* Feedback Feed */}
-        {displayFeedback.length === 0 ? (
+        {hasNoFeedback ? (
           <div className="empty-state">
             <div className="text-6xl mb-4">📭</div>
             <p className="text-gray-500 text-lg">No feedback found</p>
@@ -308,12 +393,12 @@ const Dashboard = () => {
               const feedbackId = feedbackItem.feedbackId || feedbackItem.id;
               const hasUpvoted = userUpvotes[feedbackId];
               const commentCount = commentCounts[feedbackId] || 0;
+              const isUpvotingFeedback = upvoting === feedbackId;
 
               return (
                 <div key={feedbackId} className="bg-white rounded-lg shadow p-4 hover:shadow-md transition">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{getCategoryIcon(feedbackItem.category)}</span>
                       <div>
                         <h4 className="font-semibold text-gray-800">{feedbackItem.title}</h4>
                         <div className="flex items-center gap-2 mt-1">
@@ -335,29 +420,57 @@ const Dashboard = () => {
                   <p className="text-gray-600 text-sm mt-2 mb-2 line-clamp-2">{feedbackItem.description}</p>
 
                   <div className="flex items-center gap-4 text-sm">
-                    <button onClick={() => handleToggleUpvote(feedbackId)} disabled={upvoting === feedbackId}
-                      className={`flex items-center gap-1 ${hasUpvoted ? 'text-blue-600 font-medium' : 'text-gray-500 hover:text-blue-600'}`}>
-                      {upvoting === feedbackId ? '⏳' : '👍'} {feedbackItem.votes || 0}
+                    <button 
+                      onClick={() => handleToggleUpvote(feedbackId)} 
+                      disabled={isUpvotingFeedback}
+                      className={`flex items-center gap-1 ${hasUpvoted ? 'text-blue-600 font-medium' : 'text-gray-500 hover:text-blue-600'}`}
+                    >
+                      <span>👍</span>
+                      {getButtonUpvoteText(feedbackItem, hasUpvoted, isUpvotingFeedback)}
                     </button>
-                    <button onClick={() => setShowCommentBox(showCommentBox === feedbackId ? null : feedbackId)}
-                      className="flex items-center gap-1 text-gray-500 hover:text-blue-600">
-                      💬 {commentCount} {commentCount === 1 ? 'Comment' : 'Comments'}
+                    <button 
+                      onClick={() => {
+                        const isSameBox = showCommentBox === feedbackId;
+                        if (isSameBox) {
+                          setShowCommentBox(null);
+                        } else {
+                          setShowCommentBox(feedbackId);
+                        }
+                      }}
+                      className="flex items-center gap-1 text-gray-500 hover:text-blue-600"
+                    >
+    
+                      {getCommentButtonText(commentCount)}
                     </button>
                   </div>
 
-                  {showCommentBox === feedbackId && (
-                    <div className="mt-3 pt-3 border-t">
-                      <div className="flex gap-2">
-                        <input type="text" value={commentText} onChange={(e) => setCommentText(e.target.value)}
-                          placeholder="Write a comment..." disabled={submitting}
-                          className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <button onClick={() => handleAddComment(feedbackId)} disabled={submitting}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50">
-                          {submitting ? '...' : 'Post'}
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  {(() => {
+                    const isCommentBoxOpen = showCommentBox === feedbackId;
+                    if (isCommentBoxOpen) {
+                      return (
+                        <div className="mt-3 pt-3 border-t">
+                          <div className="flex gap-2">
+                            <input 
+                              type="text" 
+                              value={commentText} 
+                              onChange={(e) => setCommentText(e.target.value)}
+                              placeholder="Write a comment..." 
+                              disabled={submitting}
+                              className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            />
+                            <button 
+                              onClick={() => handleAddComment(feedbackId)} 
+                              disabled={submitting}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
+                            >
+                              {submitting ? '...' : 'Post'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               );
             })}

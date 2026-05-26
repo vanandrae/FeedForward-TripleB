@@ -184,8 +184,8 @@ const FeedbackDetails = () => {
             </div>
 
             <div className="flex gap-4 text-sm text-gray-500 mb-6 pb-4 border-b">
-              <span>📅 {new Date(feedback.createdAt).toLocaleDateString()}</span>
-              <span>👤 By: {getAuthorDisplay()}</span>
+              <span>{new Date(feedback.createdAt).toLocaleDateString()}</span>
+              <span>By: {getAuthorDisplay()}</span>
             </div>
 
             <div className="mb-6">
@@ -241,7 +241,7 @@ const FeedbackDetails = () => {
                 )}
               </div>
 
-              {/* Add Comment Section */}
+            
               <div>
                 <textarea
                   value={newComment}

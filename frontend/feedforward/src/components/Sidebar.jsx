@@ -47,12 +47,11 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 bg-gradient-to-b from-[#1976D2] to-[#1565C0] h-screen fixed left-0 top-0 shadow-lg z-20">
-      {/* Logo */}
+    
       <div className="flex items-center justify-center h-16 border-b border-white/20">
         <h1 className="text-white text-xl font-bold">FeedForward</h1>
       </div>
 
-      {/* User Info with Profile Picture */}
       {user && (
         <div className="px-4 py-4 border-b border-white/20">
           <div className="flex items-center gap-3">
@@ -77,14 +76,14 @@ const Sidebar = () => {
         </div>
       )}
 
-      {/* Navigation Menu */}
+      
       <nav className="mt-4 px-3">
         {menuItems.map((item, index) => (
           <Navlink key={index} to={item.to} label={item.label} />
         ))}
       </nav>
 
-      {/* Footer with Logout Button */}
+      
       <div className="absolute bottom-8 left-0 right-0 px-3">
         <button
           onClick={handleLogout}

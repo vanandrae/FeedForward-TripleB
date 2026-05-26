@@ -129,7 +129,7 @@ const AppContent = () => {
       </div>
     }>
       <Routes>
-        {/* Public Routes */}
+        
         <Route path="/login" element={
           <PublicRoute>
             <Login />
@@ -141,7 +141,7 @@ const AppContent = () => {
         </PublicRoute>
       } />
 
-      {/* Protected Routes - All authenticated users */}
+    
       <Route path="/" element={
         <ProtectedRoute>
           <Dashboard />
@@ -178,14 +178,14 @@ const AppContent = () => {
         </ProtectedRoute>
       } />
 
-      {/* Admin Only Routes */}
+      
       <Route path="/admin/reports" element={
         <AdminRoute>
           <AdminReports />
         </AdminRoute>
       } />
 
-      {/* Catch all */}
+      
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
     </Suspense>
