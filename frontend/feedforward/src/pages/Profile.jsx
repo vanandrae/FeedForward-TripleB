@@ -296,10 +296,10 @@ const Profile = () => {
   const hasError = error !== '';
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen py-8">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
+        <div className="theme-card overflow-hidden">
+          <div className="theme-gradient-bg p-8 text-white">
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-4xl font-bold backdrop-blur-sm">
                 {getInitials()}
@@ -376,7 +376,7 @@ const Profile = () => {
                 <div className="flex gap-3 pt-4 border-t">
                   <button
                     onClick={() => setEditing(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                    className="px-4 py-2 theme-button rounded-lg transition flex items-center gap-2"
                   >
                     Edit Profile
                   </button>
@@ -396,7 +396,7 @@ const Profile = () => {
                     type="text"
                     value={formData.fullName}
                     onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B5E9C] focus:border-transparent"
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -407,7 +407,7 @@ const Profile = () => {
                     type="text"
                     value={formData.department}
                     onChange={(e) => setFormData({...formData, department: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B5E9C]"
                     placeholder="Computer Science, Engineering, Business"
                   />
                 </div>
@@ -424,7 +424,7 @@ const Profile = () => {
                         type="password"
                         value={formData.currentPassword}
                         onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B5E9C]"
                         placeholder="Enter your current password"
                       />
                     </div>
@@ -434,7 +434,7 @@ const Profile = () => {
                         type="password"
                         value={formData.newPassword}
                         onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B5E9C]"
                         placeholder="Enter new password (min. 6 characters)"
                       />
                     </div>
@@ -444,7 +444,7 @@ const Profile = () => {
                         type="password"
                         value={formData.confirmPassword}
                         onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B5E9C]"
                         placeholder="Confirm your new password"
                       />
                     </div>
@@ -456,7 +456,7 @@ const Profile = () => {
                   <button
                     onClick={handleUpdateProfile}
                     disabled={loading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
+                    className="px-4 py-2 theme-button rounded-lg transition disabled:opacity-50 flex items-center gap-2"
                   >
                     {getButtonText()}
                   </button>
@@ -482,7 +482,7 @@ const Profile = () => {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-blue-50 rounded-lg hover:shadow-md transition">
-                    <div className="text-3xl font-bold text-blue-600">{feedbackStats.total}</div>
+                    <div className="text-3xl font-bold theme-text">{feedbackStats.total}</div>
                     <div className="text-sm text-gray-600 mt-1">Total Feedback</div>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg hover:shadow-md transition">

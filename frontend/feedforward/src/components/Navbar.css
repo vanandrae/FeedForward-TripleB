@@ -105,7 +105,7 @@
 .mark-all-read {
   background: none;
   border: none;
-  color: #0066cc;
+  color: #1B5E9C;
   font-size: 13px;
   cursor: pointer;
 }
@@ -169,7 +169,7 @@
 .unread-dot {
   width: 8px;
   height: 8px;
-  background-color: #0066cc;
+  background-color: #1B5E9C;
   border-radius: 50%;
   align-self: center;
   flex-shrink: 0;

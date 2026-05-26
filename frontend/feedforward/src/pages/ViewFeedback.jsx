@@ -118,7 +118,7 @@ const ViewFeedback = () => {
           <div className="text-red-600 text-xl mb-4">⚠️ {error}</div>
           <button
             onClick={() => fetchFeedback()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="theme-button"
           >
             Retry
           </button>
@@ -137,7 +137,7 @@ const ViewFeedback = () => {
        
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-3 text-center">
-            <div className="text-2xl font-bold text-blue-600">{feedbackList.length}</div>
+            <div className="text-2xl font-bold theme-text">{feedbackList.length}</div>
             <div className="text-xs text-gray-500">Total</div>
           </div>
           <div className="bg-white rounded-lg shadow p-3 text-center">
@@ -147,7 +147,7 @@ const ViewFeedback = () => {
             <div className="text-xs text-gray-500">Pending</div>
           </div>
           <div className="bg-white rounded-lg shadow p-3 text-center">
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold theme-text">
               {feedbackList.filter(f => f.status?.toUpperCase() === 'IN_REVIEW').length}
             </div>
             <div className="text-xs text-gray-500">In Review</div>
@@ -169,7 +169,7 @@ const ViewFeedback = () => {
                 placeholder="Search feedback by title, description, author, or category..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B5E9C]"
               />
               <svg
                 className="absolute left-3 top-3.5 h-5 w-5 text-gray-400"
@@ -194,7 +194,7 @@ const ViewFeedback = () => {
               onClick={() => setFilter('all')}
               className={`px-4 py-2 rounded-lg capitalize transition ${
                 filter === 'all'
-                  ? 'bg-blue-600 text-white'
+                  ? 'theme-button'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -204,7 +204,7 @@ const ViewFeedback = () => {
               onClick={() => setFilter('pending')}
               className={`px-4 py-2 rounded-lg capitalize transition ${
                 filter === 'pending'
-                  ? 'bg-blue-600 text-white'
+                  ? 'theme-button'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -214,7 +214,7 @@ const ViewFeedback = () => {
               onClick={() => setFilter('in_review')}
               className={`px-4 py-2 rounded-lg capitalize transition ${
                 filter === 'in_review'
-                  ? 'bg-blue-600 text-white'
+                  ? 'theme-button'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -224,7 +224,7 @@ const ViewFeedback = () => {
               onClick={() => setFilter('resolved')}
               className={`px-4 py-2 rounded-lg capitalize transition ${
                 filter === 'resolved'
-                  ? 'bg-blue-600 text-white'
+                  ? 'theme-button'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -242,7 +242,7 @@ const ViewFeedback = () => {
             {isStudent && (
               <button
                 onClick={() => navigate('/submit-feedback')}
-                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="mt-4 theme-button"
               >
                 Submit Feedback
               </button>
@@ -288,7 +288,7 @@ const ViewFeedback = () => {
                   <div className="flex gap-2 ml-4">
                     <button
                       onClick={() => navigate(`/feedback/${feedback.feedbackId || feedback.id}`)}
-                      className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded transition text-sm"
+                      className="px-3 py-1 theme-text hover:bg-blue-50 rounded transition text-sm"
                     >
                       View Details
                     </button>

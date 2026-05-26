@@ -286,22 +286,22 @@ const Dashboard = () => {
         </div>
 
         <div className="stats-container">
-          <div className="stat-card bg-gradient-to-r from-indigo-500 to-purple-600">
+          <div className="stat-card theme-gradient-bg">
             <div className="stat-number">{stats.totalFeedback}</div>
             <div className="stat-label">Total Feedback</div>
             <div className="stat-sub">All submissions</div>
           </div>
-          <div className="stat-card bg-gradient-to-r from-pink-500 to-rose-500">
+          <div className="stat-card theme-gradient-bg" style={{ opacity: 0.95 }}>
             <div className="stat-number">{stats.pending}</div>
             <div className="stat-label">Pending</div>
             <div className="stat-sub">Awaiting review</div>
           </div>
-          <div className="stat-card bg-gradient-to-r from-cyan-500 to-blue-500">
+          <div className="stat-card theme-gradient-bg" style={{ opacity: 0.9 }}>
             <div className="stat-number">{stats.inReview}</div>
             <div className="stat-label">In Review</div>
             <div className="stat-sub">Being processed</div>
           </div>
-          <div className="stat-card bg-gradient-to-r from-green-500 to-emerald-500">
+          <div className="stat-card theme-gradient-bg" style={{ opacity: 0.85 }}>
             <div className="stat-number">{stats.resolved}</div>
             <div className="stat-label">Resolved</div>
             <div className="stat-sub">Completed</div>
@@ -314,7 +314,7 @@ const Dashboard = () => {
             {isStudent && (
               <div onClick={() => navigate('/submit-feedback')} className="action-card">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-blue-50 text-[#0A3A66] rounded-lg flex items-center justify-center">
                     <span className="text-xl">+</span>
                   </div>
                   <div>
@@ -326,7 +326,7 @@ const Dashboard = () => {
             )}
             <div onClick={() => navigate('/feedback')} className="action-card">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-blue-50 text-[#0A3A66] rounded-lg flex items-center justify-center">
                   <span className="text-xl">👁</span>
                 </div>
                 <div>
@@ -346,7 +346,7 @@ const Dashboard = () => {
             placeholder="Search by title, description, or author email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-[#1B5E9C]"
           />
 
           <div className="flex flex-wrap gap-3 mb-3">
@@ -411,7 +411,7 @@ const Dashboard = () => {
                     </div>
                     <button
                       onClick={() => handleViewDetails(feedbackId)}
-                      className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded text-sm transition"
+                      className="px-3 py-1 theme-text hover:bg-blue-50 rounded text-sm transition"
                     >
                       View Details →
                     </button>
@@ -423,7 +423,7 @@ const Dashboard = () => {
                     <button 
                       onClick={() => handleToggleUpvote(feedbackId)} 
                       disabled={isUpvotingFeedback}
-                      className={`flex items-center gap-1 ${hasUpvoted ? 'text-blue-600 font-medium' : 'text-gray-500 hover:text-blue-600'}`}
+                      className={`flex items-center gap-1 ${hasUpvoted ? 'theme-text font-medium' : 'text-gray-500 hover:theme-text'}`}
                     >
                       <span>👍</span>
                       {getButtonUpvoteText(feedbackItem, hasUpvoted, isUpvotingFeedback)}
@@ -437,7 +437,7 @@ const Dashboard = () => {
                           setShowCommentBox(feedbackId);
                         }
                       }}
-                      className="flex items-center gap-1 text-gray-500 hover:text-blue-600"
+                      className="flex items-center gap-1 text-gray-500 hover:theme-text"
                     >
     
                       {getCommentButtonText(commentCount)}
@@ -456,12 +456,12 @@ const Dashboard = () => {
                               onChange={(e) => setCommentText(e.target.value)}
                               placeholder="Write a comment..." 
                               disabled={submitting}
-                              className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                              className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E9C]" 
                             />
                             <button 
                               onClick={() => handleAddComment(feedbackId)} 
                               disabled={submitting}
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
+                              className="theme-button text-sm disabled:opacity-50"
                             >
                               {submitting ? '...' : 'Post'}
                             </button>

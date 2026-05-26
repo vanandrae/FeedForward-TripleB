@@ -48,7 +48,11 @@ const Sidebar = () => {
   return (
     <div className="w-64 bg-gradient-to-b from-[#1976D2] to-[#1565C0] h-screen fixed left-0 top-0 shadow-lg z-20">
     
-      <div className="flex items-center justify-center h-16 border-b border-white/20">
+      <div className="flex items-center justify-center h-16 border-b border-white/20 gap-2">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
         <h1 className="text-white text-xl font-bold">FeedForward</h1>
       </div>
 

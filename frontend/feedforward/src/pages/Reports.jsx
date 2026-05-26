@@ -151,7 +151,7 @@ const Reports = () => {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-gray-500 text-sm">Total Feedback</div>
-            <div className="text-2xl font-bold text-blue-600">{stats.totalFeedback}</div>
+            <div className="text-2xl font-bold theme-text">{stats.totalFeedback}</div>
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-gray-500 text-sm">Resolved</div>
@@ -183,7 +183,7 @@ const Reports = () => {
               <select
                 value={reportType}
                 onChange={(e) => setReportType(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B5E9C]"
               >
                 <option value="feedback">Feedback Summary</option>
                 <option value="users">User Activity</option>
@@ -197,7 +197,7 @@ const Reports = () => {
               <select
                 value={format}
                 onChange={(e) => setFormat(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B5E9C]"
               >
                 <option value="csv">CSV (Excel Compatible)</option>
               </select>
@@ -207,7 +207,7 @@ const Reports = () => {
           <button
             onClick={handleGenerateReport}
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+            className="theme-button w-full transition disabled:opacity-50"
           >
             {loading ? 'Generating...' : 'Generate & Download Report'}
           </button>

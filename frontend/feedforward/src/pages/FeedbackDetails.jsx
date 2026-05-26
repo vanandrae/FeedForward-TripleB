@@ -124,7 +124,7 @@ const FeedbackDetails = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500">Feedback not found</p>
-          <button onClick={() => navigate('/feedback')} className="mt-4 text-blue-600">
+          <button onClick={() => navigate('/feedback')} className="mt-4 theme-text">
             Back to Feedback
           </button>
         </div>
@@ -137,7 +137,7 @@ const FeedbackDetails = () => {
       <div className="max-w-4xl mx-auto px-4">
         <button
           onClick={() => navigate('/feedback')}
-          className="mb-4 text-blue-600 hover:text-blue-700 flex items-center gap-2"
+          className="mb-4 theme-text hover:text-blue-700 flex items-center gap-2"
         >
           ← Back to Feedback
         </button>
@@ -192,7 +192,7 @@ const FeedbackDetails = () => {
               <button
                 onClick={handleUpvote}
                 disabled={upvoted}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-50 theme-text rounded-lg hover:bg-blue-100 disabled:opacity-50"
               >
                 👍 {feedback.votes || 0} Upvotes
               </button>
@@ -248,7 +248,7 @@ const FeedbackDetails = () => {
                   onChange={(e) => setNewComment(e.target.value)}
                   rows="3"
                   disabled={submitting}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B5E9C] disabled:bg-gray-100"
                   placeholder="Add a comment..."
                 />
 
@@ -258,7 +258,7 @@ const FeedbackDetails = () => {
                       type="checkbox"
                       checked={isAnonymous}
                       onChange={(e) => setIsAnonymous(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-4 h-4 theme-text rounded focus:ring-[#1B5E9C]"
                     />
                     <span className="text-sm text-gray-600">
                       Post anonymously
@@ -269,7 +269,7 @@ const FeedbackDetails = () => {
                   <button
                     onClick={handleAddComment}
                     disabled={submitting || !newComment.trim()}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="theme-button disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {submitting ? (
                       <>

@@ -143,7 +143,7 @@ const ProfilePictureUpload = ({ currentImage, onImageUpload, onClose }) => {
           <button
             onClick={handleSave}
             disabled={!selectedFile || uploading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="theme-button disabled:opacity-50"
           >
             {uploading ? 'Saving...' : 'Save'}
           </button>

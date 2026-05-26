@@ -40,3 +40,41 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+@layer components {
+  .theme-button {
+    @apply text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-md flex items-center justify-center;
+    background: linear-gradient(135deg, #1B5E9C 0%, #0A3A66 100%);
+    border: none;
+  }
+  .theme-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(10, 58, 102, 0.3);
+    background: linear-gradient(135deg, #145184 0%, #092E52 100%);
+  }
+  .theme-button:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  .theme-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .theme-card {
+    background: #FFFFFF;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+  }
+  
+  .theme-gradient-bg {
+    background: linear-gradient(135deg, #0A3A66 0%, #1B5E9C 50%, #2575C7 100%);
+  }
+  
+  .theme-text {
+    color: #0A3A66;
+  }
+  
+  .theme-ring-focus {
+    @apply focus:outline-none focus:border-[#1B5E9C] focus:ring-4 focus:ring-[#1B5E9C]/20 border-gray-200 bg-[#F8FAFB];
+  }
+}

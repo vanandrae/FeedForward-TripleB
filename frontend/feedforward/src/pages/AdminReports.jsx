@@ -186,7 +186,7 @@ const AdminReports = () => {
             onClick={() => setSelectedTab('reports')}
             className={`px-4 py-2 font-medium transition ${
               selectedTab === 'reports'
-                ? 'text-blue-600 border-b-2 border-blue-600'
+                ? 'theme-text border-b-2 border-blue-600'
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
@@ -196,7 +196,7 @@ const AdminReports = () => {
             onClick={() => setSelectedTab('users')}
             className={`px-4 py-2 font-medium transition ${
               selectedTab === 'users'
-                ? 'text-blue-600 border-b-2 border-blue-600'
+                ? 'theme-text border-b-2 border-blue-600'
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
@@ -206,7 +206,7 @@ const AdminReports = () => {
             onClick={() => setSelectedTab('feedback')}
             className={`px-4 py-2 font-medium transition ${
               selectedTab === 'feedback'
-                ? 'text-blue-600 border-b-2 border-blue-600'
+                ? 'theme-text border-b-2 border-blue-600'
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
@@ -291,7 +291,7 @@ const AdminReports = () => {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <span className="text-sm font-medium text-blue-600">
+                              <span className="text-sm font-medium theme-text">
                                 {(user.fullName || user.name || 'U').charAt(0).toUpperCase()}
                               </span>
                             </div>
@@ -305,7 +305,7 @@ const AdminReports = () => {
                             value={user.role}
                             onChange={(e) => handleUpdateRole(user.userId || user.id, e.target.value, user.fullName || user.name)}
                             disabled={actionLoading}
-                            className="px-2 py-1 border rounded text-sm capitalize focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-2 py-1 border rounded text-sm capitalize focus:outline-none focus:ring-2 focus:ring-[#1B5E9C]"
                           >
                             <option value="student">Student</option>
                             <option value="faculty">Faculty</option>
