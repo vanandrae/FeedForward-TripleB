@@ -100,7 +100,7 @@ const ProfilePictureUpload = ({ currentImage, onImageUpload, onClose }) => {
 
         {error && (
           <div className="mb-4 p-2 bg-red-100 text-red-700 rounded text-sm">
-            ❌ {error}
+             {error}
           </div>
         )}
 

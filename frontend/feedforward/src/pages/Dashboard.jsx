@@ -327,7 +327,7 @@ const Dashboard = () => {
             <div onClick={() => navigate('/feedback')} className="action-card">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-50 text-[#0A3A66] rounded-lg flex items-center justify-center">
-                  <span className="text-xl">👁</span>
+                  <span className="text-xl"></span>
                 </div>
                 <div>
                   <h4 className="font-semibold">View All Feedback</h4>
@@ -383,7 +383,7 @@ const Dashboard = () => {
 
         {hasNoFeedback ? (
           <div className="empty-state">
-            <div className="text-6xl mb-4">📭</div>
+            <div className="text-6xl mb-4"></div>
             <p className="text-gray-500 text-lg">No feedback found</p>
             <p className="text-gray-400 text-sm">Try adjusting your search or filters</p>
           </div>
@@ -425,7 +425,7 @@ const Dashboard = () => {
                       disabled={isUpvotingFeedback}
                       className={`flex items-center gap-1 ${hasUpvoted ? 'theme-text font-medium' : 'text-gray-500 hover:theme-text'}`}
                     >
-                      <span>👍</span>
+                      <span></span>
                       {getButtonUpvoteText(feedbackItem, hasUpvoted, isUpvotingFeedback)}
                     </button>
                     <button 

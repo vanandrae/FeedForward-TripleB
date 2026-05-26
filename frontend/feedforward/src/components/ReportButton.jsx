@@ -50,7 +50,7 @@ const ReportButton = ({ feedbackId, feedbackTitle }) => {
         onClick={() => setShowModal(true)}
         className="px-3 py-1 text-red-600 hover:bg-red-50 rounded transition text-sm flex items-center gap-1"
       >
-        🚩 Report
+         Report
       </button>
 
       {showModal && (

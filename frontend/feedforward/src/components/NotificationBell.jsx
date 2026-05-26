@@ -59,11 +59,11 @@ const NotificationBell = () => {
 
   const getNotificationIcon = (type) => {
     switch (type) {
-      case 'status_change': return '🔄';
-      case 'comment': return '💬';
-      case 'feedback_resolved': return '✅';
+      case 'status_change': return '';
+      case 'comment': return '';
+      case 'feedback_resolved': return '';
       case 'mention': return '@';
-      default: return '🔔';
+      default: return '';
     }
   };
 
@@ -98,7 +98,7 @@ const NotificationBell = () => {
 
           {notifications.length === 0 ? (
             <div className="notification-empty">
-              <div className="empty-icon">🔔</div>
+              <div className="empty-icon"></div>
               <p>No notifications yet</p>
             </div>
           ) : (

@@ -115,7 +115,7 @@ const ViewFeedback = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-600 text-xl mb-4">⚠️ {error}</div>
+          <div className="text-red-600 text-xl mb-4"> {error}</div>
           <button
             onClick={() => fetchFeedback()}
             className="theme-button"
@@ -236,7 +236,7 @@ const ViewFeedback = () => {
         {/* Feedback List */}
         {filteredFeedback.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <div className="text-6xl mb-4">📭</div>
+            <div className="text-6xl mb-4"></div>
             <p className="text-gray-500 text-lg">No feedback submissions found</p>
             <p className="text-gray-400 text-sm">Try changing the filter or search term</p>
             {isStudent && (

@@ -194,7 +194,7 @@ const FeedbackDetails = () => {
                 disabled={upvoted}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-50 theme-text rounded-lg hover:bg-blue-100 disabled:opacity-50"
               >
-                👍 {feedback.votes || 0} Upvotes
+                 {feedback.votes || 0} Upvotes
               </button>
             </div>
 

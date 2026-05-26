@@ -1,16 +1,13 @@
 
 import ApiClient from './ApiClient';
 
-// Simple in-memory cache for fast navigation
 const apiCache = new Map();
 
 class HttpService {
   static async get(url, params = {}, forceRefresh = false) {
     const cacheKey = url + (Object.keys(params).length ? JSON.stringify(params) : '');
 
-    // If we have cached data and aren't forcing a refresh, return it instantly
     if (!forceRefresh && apiCache.has(cacheKey)) {
-      // Fetch in background to update cache for next time silently
       ApiClient.get(url, { params })
         .then(response => {
           apiCache.set(cacheKey, response.data);
@@ -21,16 +18,15 @@ class HttpService {
     }
 
     try {
-      console.log(`📡 GET Request: ${url}`, params);
+      console.log(`GET Request: ${url}`, params);
       const response = await ApiClient.get(url, { params });
-      console.log(`✅ GET Response:`, response.data);
+      console.log(`GET Response:`, response.data);
       
-      // Store the result in cache
       apiCache.set(cacheKey, response.data);
       
       return response.data;
     } catch (error) {
-      console.error(`❌ GET Error:`, error);
+      console.error(`GET Error:`, error);
       throw this.handleError(error);
     }
   }
@@ -48,17 +44,16 @@ class HttpService {
   }
 
   static async post(url, data = {}) {
-    // Clear cache on mutation to ensure fresh data next time
     this.clearCache();
     try {
-      console.log(`📡 POST Request to: ${url}`);
-      console.log(`📦 Request body:`, data);
+      console.log(`POST Request to: ${url}`);
+      console.log(`Request body:`, data);
       const response = await ApiClient.post(url, data);
-      console.log(`✅ POST Response status:`, response.status);
-      console.log(`✅ POST Response data:`, response.data);
+      console.log(`POST Response status:`, response.status);
+      console.log(`POST Response data:`, response.data);
       return response.data;
     } catch (error) {
-      console.error(`❌ POST Error for ${url}:`, error);
+      console.error(`POST Error for ${url}:`, error);
       console.error(`Error response:`, error.response);
       console.error(`Error status:`, error.response?.status);
       console.error(`Error data:`, error.response?.data);
